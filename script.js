@@ -47,6 +47,25 @@ const groupFields = [
   { value: "rating", label: "Rating" }
 ];
 
+// These presets replace open date fields in Recent Additions. The labels explain
+// whether a period is rolling, complete, or still in progress.
+const reportPeriodOptions = [
+  { value: "entireCatalog", label: "Entire catalog history" },
+  { value: "last30Days", label: "Last 30 days (rolling)" },
+  { value: "previousMonth", label: "Previous calendar month (complete)" },
+  { value: "currentQuarter", label: "Current catalog quarter (to latest date)" },
+  { value: "previousQuarter", label: "Previous calendar quarter (complete)" },
+  { value: "yearToDate", label: "Catalog year to date" },
+  { value: "last12Months", label: "Last 12 months (rolling)" }
+];
+
+const comparisonPeriodOptions = [
+  { value: "recent30VsPrevious30", label: "Latest 30 days vs previous 30 days" },
+  { value: "currentMonthVsPreviousMonth", label: "Current catalog month vs previous month" },
+  { value: "currentQuarterVsPreviousQuarter", label: "Current catalog quarter vs previous quarter" },
+  { value: "yearToDateVsPreviousYear", label: "Catalog year to date vs previous year" }
+];
+
 function normalizeHeader(value) {
   return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -263,9 +282,15 @@ async function processFile(file) {
 }
 
 function renderReportTypes() {
+  // This function rebuilds the report cards from reportDefinitions in data.js.
+  // Keeping the report information in data.js prevents us from repeating names
+  // and descriptions in both the HTML and JavaScript files.
   const grid = document.querySelector("#report-type-grid");
   grid.replaceChildren();
+
   reportDefinitions.forEach(function (report) {
+    // Each report card contains a real radio input. Radio inputs are useful here
+    // because the user must select exactly one report type before continuing.
     const label = document.createElement("label");
     label.className = "report-type-card";
     const radio = document.createElement("input");
@@ -282,9 +307,18 @@ function renderReportTypes() {
     const arrow = document.createElement("b");
     arrow.textContent = "→";
     label.append(radio, content, arrow);
+
     radio.addEventListener("change", function () {
+      // Save the selected report in application state. Later screens read this
+      // value to decide which configuration fields and calculations to display.
       state.selectedReportId = report.id;
+
+      // The Continue button starts disabled so the user cannot advance without
+      // making a valid report selection.
       reportTypeContinueButton.disabled = false;
+
+      // Update the visual selection state without changing the radio input's
+      // native keyboard and screen-reader behavior.
       document.querySelectorAll(".report-type-card").forEach(function (card) {
         card.classList.toggle("is-selected", card.contains(radio) && radio.checked);
       });
@@ -302,6 +336,177 @@ function uniqueValues(field) {
   )].sort(function (a, b) {
     return String(a).localeCompare(String(b), undefined, { numeric: true });
   });
+}
+
+function toIsoDate(date) {
+  return [
+    date.getUTCFullYear(),
+    String(date.getUTCMonth() + 1).padStart(2, "0"),
+    String(date.getUTCDate()).padStart(2, "0")
+  ].join("-");
+}
+
+function latestCatalogDate() {
+  const validDates = state.catalog.map(function (record) {
+    return record.dateAdded;
+  }).filter(Boolean);
+  if (validDates.length === 0) return null;
+  return new Date(Math.max(...validDates.map(function (date) { return date.getTime(); })));
+}
+
+function earliestCatalogDate() {
+  const validDates = state.catalog.map(function (record) {
+    return record.dateAdded;
+  }).filter(Boolean);
+  if (validDates.length === 0) return null;
+  return new Date(Math.min(...validDates.map(function (date) { return date.getTime(); })));
+}
+
+function shiftUtcDate(date, values) {
+  const result = new Date(date.getTime());
+  if (values.years) result.setUTCFullYear(result.getUTCFullYear() + values.years);
+  if (values.months) result.setUTCMonth(result.getUTCMonth() + values.months);
+  if (values.days) result.setUTCDate(result.getUTCDate() + values.days);
+  return result;
+}
+
+function resolveReportingPeriod(period, anchorDate) {
+  if (!anchorDate) return null;
+  const year = anchorDate.getUTCFullYear();
+  const month = anchorDate.getUTCMonth();
+  const quarterStartMonth = Math.floor(month / 3) * 3;
+  let start;
+  let end;
+
+  if (period === "entireCatalog") {
+    const earliest = earliestCatalogDate();
+    if (!earliest) return null;
+    start = earliest;
+    end = anchorDate;
+  } else if (period === "last30Days") {
+    start = shiftUtcDate(anchorDate, { days: -29 });
+    end = anchorDate;
+  } else if (period === "previousMonth") {
+    start = new Date(Date.UTC(year, month - 1, 1));
+    end = new Date(Date.UTC(year, month, 0));
+  } else if (period === "currentQuarter") {
+    start = new Date(Date.UTC(year, quarterStartMonth, 1));
+    end = anchorDate;
+  } else if (period === "previousQuarter") {
+    start = new Date(Date.UTC(year, quarterStartMonth - 3, 1));
+    end = new Date(Date.UTC(year, quarterStartMonth, 0));
+  } else if (period === "yearToDate") {
+    start = new Date(Date.UTC(year, 0, 1));
+    end = anchorDate;
+  } else if (period === "last12Months") {
+    start = shiftUtcDate(anchorDate, { years: -1, days: 1 });
+    end = anchorDate;
+  } else {
+    return null;
+  }
+
+  return { dateFrom: toIsoDate(start), dateTo: toIsoDate(end) };
+}
+
+function reportPeriodLabel(value) {
+  return reportPeriodOptions.find(function (option) {
+    return option.value === value;
+  })?.label || value;
+}
+
+function comparisonPeriodLabel(value) {
+  return comparisonPeriodOptions.find(function (option) {
+    return option.value === value;
+  })?.label || value;
+}
+
+function resolveComparisonPeriod(period, anchorDate) {
+  if (!anchorDate) return null;
+  const year = anchorDate.getUTCFullYear();
+  const month = anchorDate.getUTCMonth();
+  const day = anchorDate.getUTCDate();
+  const quarterStartMonth = Math.floor(month / 3) * 3;
+  let periodAStart;
+  let periodAEnd;
+  let periodBStart;
+  let periodBEnd;
+
+  if (period === "recent30VsPrevious30") {
+    periodBStart = shiftUtcDate(anchorDate, { days: -29 });
+    periodBEnd = anchorDate;
+    periodAEnd = shiftUtcDate(periodBStart, { days: -1 });
+    periodAStart = shiftUtcDate(periodAEnd, { days: -29 });
+  } else if (period === "currentMonthVsPreviousMonth") {
+    periodBStart = new Date(Date.UTC(year, month, 1));
+    periodBEnd = anchorDate;
+    periodAStart = new Date(Date.UTC(year, month - 1, 1));
+    // Use the same elapsed day when possible so partial months are comparable.
+    periodAEnd = new Date(Date.UTC(year, month - 1, Math.min(day, new Date(Date.UTC(year, month, 0)).getUTCDate())));
+  } else if (period === "currentQuarterVsPreviousQuarter") {
+    periodBStart = new Date(Date.UTC(year, quarterStartMonth, 1));
+    periodBEnd = anchorDate;
+    const elapsedDays = Math.round((periodBEnd - periodBStart) / 86400000);
+    periodAStart = new Date(Date.UTC(year, quarterStartMonth - 3, 1));
+    const previousQuarterEnd = new Date(Date.UTC(year, quarterStartMonth, 0));
+    periodAEnd = shiftUtcDate(periodAStart, { days: elapsedDays });
+    if (periodAEnd > previousQuarterEnd) periodAEnd = previousQuarterEnd;
+  } else if (period === "yearToDateVsPreviousYear") {
+    periodBStart = new Date(Date.UTC(year, 0, 1));
+    periodBEnd = anchorDate;
+    periodAStart = new Date(Date.UTC(year - 1, 0, 1));
+    const previousYearMonthEnd = new Date(Date.UTC(year - 1, month + 1, 0)).getUTCDate();
+    periodAEnd = new Date(Date.UTC(year - 1, month, Math.min(day, previousYearMonthEnd)));
+  } else {
+    return null;
+  }
+
+  return {
+    periodAStart: toIsoDate(periodAStart),
+    periodAEnd: toIsoDate(periodAEnd),
+    periodBStart: toIsoDate(periodBStart),
+    periodBEnd: toIsoDate(periodBEnd)
+  };
+}
+
+function createReportingPeriodField() {
+  const wrapper = createField("Reporting period", "reportPeriod", "select", reportPeriodOptions, true);
+  const select = wrapper.querySelector("select");
+  const explanation = document.createElement("p");
+  explanation.className = "field-help";
+
+  function updateExplanation() {
+    const anchor = latestCatalogDate();
+    const range = resolveReportingPeriod(select.value, anchor);
+    explanation.textContent = range
+      ? `${reportPeriodLabel(select.value)} resolves to ${range.dateFrom} through ${range.dateTo}, based on the latest valid catalog date (${toIsoDate(anchor)}).`
+      : "Choose a preset. CatalogLens will show the exact dates before applying the report.";
+  }
+
+  // Showing the resolved dates removes ambiguity without asking a beginner to
+  // manually calculate month or quarter boundaries.
+  select.addEventListener("change", updateExplanation);
+  updateExplanation();
+  wrapper.append(explanation);
+  return wrapper;
+}
+
+function createComparisonPeriodField() {
+  const wrapper = createField("Comparison period", "comparisonPeriod", "select", comparisonPeriodOptions, true);
+  const select = wrapper.querySelector("select");
+  const explanation = document.createElement("p");
+  explanation.className = "field-help";
+
+  function updateExplanation() {
+    const range = resolveComparisonPeriod(select.value, latestCatalogDate());
+    explanation.textContent = range
+      ? `${comparisonPeriodLabel(select.value)}: Period A is ${range.periodAStart} through ${range.periodAEnd}; Period B is ${range.periodBStart} through ${range.periodBEnd}.`
+      : "Choose a preset comparison. CatalogLens will show both exact periods before applying the report.";
+  }
+
+  select.addEventListener("change", updateExplanation);
+  updateExplanation();
+  wrapper.append(explanation);
+  return wrapper;
 }
 
 function createField(labelText, name, type, options, required) {
@@ -343,11 +548,7 @@ function createField(labelText, name, type, options, required) {
   return wrapper;
 }
 
-function addCommonFilters(container, includeDates, includeReleaseYears) {
-  if (includeDates) {
-    container.append(createField("Date added from", "dateFrom", "date", [], false));
-    container.append(createField("Date added to", "dateTo", "date", [], false));
-  }
+function addCommonFilters(container, includeReleaseYears) {
   if (includeReleaseYears) {
     container.append(createField("Release year from", "releaseYearFrom", "number", [], false));
     container.append(createField("Release year to", "releaseYearTo", "number", [], false));
@@ -359,35 +560,53 @@ function addCommonFilters(container, includeDates, includeReleaseYears) {
 }
 
 function renderConfiguration() {
+  // Read the report selected on the previous screen. The selected report
+  // controls which fields are relevant to the user's current business question.
   const report = selectedReport();
   document.querySelector("#selected-report-name").textContent = report.name;
   document.querySelector("#configure-description").textContent = report.description;
+
+  // Remove fields from a previously selected report before adding the new ones.
+  // replaceChildren() avoids leaving old controls or duplicate element IDs behind.
   configurationFields.replaceChildren();
   configurationError.hidden = true;
 
   if (report.id === "recent") {
-    configurationFields.append(createField("Date added from", "dateFrom", "date", [], true));
-    configurationFields.append(createField("Date added to", "dateTo", "date", [], true));
-    addCommonFilters(configurationFields, false, false);
+    // A required preset is more consistent for a recurring report than two open
+    // dates. It also prevents reversed or incomplete date ranges.
+    configurationFields.append(createReportingPeriodField());
+    addCommonFilters(configurationFields, false);
   } else if (report.id === "distribution") {
-    configurationFields.append(createField("Group results by", "groupBy", "select", groupFields, true));
-    addCommonFilters(configurationFields, true, false);
-  } else if (report.id === "comparison") {
+    // Distribution Analysis must know which catalog field should define the
+    // chart categories, such as genre, country, type, or rating.
     configurationFields.append(
-      createField("Period A start", "periodAStart", "date", [], true),
-      createField("Period A end", "periodAEnd", "date", [], true),
-      createField("Period B start", "periodBStart", "date", [], true),
-      createField("Period B end", "periodBEnd", "date", [], true),
+      createReportingPeriodField(),
+      createField("Group results by", "groupBy", "select", groupFields, true)
+    );
+    addCommonFilters(configurationFields, false);
+  } else if (report.id === "comparison") {
+    // One comparison preset creates two equivalent periods. This keeps the form
+    // consistent while preventing accidental comparisons of unrelated lengths.
+    configurationFields.append(
+      createComparisonPeriodField(),
       createField("Compare by", "groupBy", "select", groupFields, true)
     );
   } else if (report.id === "gap") {
+    // Gap Analysis never invents an "underrepresented" category. The user must
+    // provide a measurable percentage threshold for the calculation.
     configurationFields.append(
+      createReportingPeriodField(),
       createField("Analyze categories by", "groupBy", "select", groupFields, true),
       createField("Gap threshold percentage", "gapThreshold", "number", [], true)
     );
   } else {
-    configurationFields.append(createField("Group results by", "groupBy", "select", groupFields, true));
-    addCommonFilters(configurationFields, true, true);
+    // Custom Report exposes the broadest set of optional filters while still
+    // requiring one grouping field so that a meaningful chart can be created.
+    configurationFields.append(
+      createReportingPeriodField(),
+      createField("Group results by", "groupBy", "select", groupFields, true)
+    );
+    addCommonFilters(configurationFields, true);
   }
 }
 
@@ -398,23 +617,15 @@ function formValues(form) {
 function validateConfiguration(filters) {
   const report = selectedReport();
   const requiredByReport = {
-    recent: ["dateFrom", "dateTo"],
-    distribution: ["groupBy"],
-    comparison: ["periodAStart", "periodAEnd", "periodBStart", "periodBEnd", "groupBy"],
-    gap: ["groupBy", "gapThreshold"],
-    custom: ["groupBy"]
+    recent: ["reportPeriod"],
+    distribution: ["reportPeriod", "groupBy"],
+    comparison: ["comparisonPeriod", "groupBy"],
+    gap: ["reportPeriod", "groupBy", "gapThreshold"],
+    custom: ["reportPeriod", "groupBy"]
   };
   const missing = requiredByReport[report.id].some(function (name) { return !filters[name]; });
   if (missing) return "Complete all required report settings.";
 
-  const datePairs = report.id === "comparison"
-    ? [["periodAStart", "periodAEnd"], ["periodBStart", "periodBEnd"]]
-    : [["dateFrom", "dateTo"]];
-  for (const pair of datePairs) {
-    if (filters[pair[0]] && filters[pair[1]] && new Date(filters[pair[0]]) > new Date(filters[pair[1]])) {
-      return "Each start date must be on or before its end date.";
-    }
-  }
   if (report.id === "gap") {
     const threshold = Number(filters.gapThreshold);
     if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
@@ -499,12 +710,8 @@ function preparePreview() {
     state.previewRecords = [...new Map([...periodA, ...periodB].map(function (record) {
       return [record.id, record];
     })).values()];
-  } else if (report.id === "recent") {
-    state.previewRecords = filterRecords(state.catalog, state.filters);
-  } else if (report.id === "distribution" || report.id === "custom") {
-    state.previewRecords = filterRecords(state.catalog, state.filters);
   } else {
-    state.previewRecords = [...state.catalog];
+    state.previewRecords = filterRecords(state.catalog, state.filters);
   }
 }
 
@@ -690,17 +897,32 @@ function renderTable() {
 function filterSummary() {
   const report = selectedReport();
   const excluded = new Set(["groupBy"]);
+  if (report.id !== "comparison") {
+    // The preset and its exact resolved dates describe the same choice. Keep the
+    // human-readable preset in the summary instead of repeating both raw dates.
+    excluded.add("dateFrom");
+    excluded.add("dateTo");
+  } else {
+    excluded.add("periodAStart");
+    excluded.add("periodAEnd");
+    excluded.add("periodBStart");
+    excluded.add("periodBEnd");
+  }
   const labels = {
     dateFrom: "Date from", dateTo: "Date to", type: "Type", country: "Country",
     genre: "Genre", rating: "Rating", releaseYearFrom: "Release year from",
     releaseYearTo: "Release year to", periodAStart: "Period A start",
     periodAEnd: "Period A end", periodBStart: "Period B start",
-    periodBEnd: "Period B end", gapThreshold: "Gap threshold"
+    periodBEnd: "Period B end", gapThreshold: "Gap threshold",
+    reportPeriod: "Reporting period", comparisonPeriod: "Comparison period"
   };
   const parts = Object.entries(state.filters).filter(function (entry) {
     return entry[1] && !excluded.has(entry[0]);
   }).map(function (entry) {
-    return `${labels[entry[0]]}: ${entry[1]}${entry[0] === "gapThreshold" ? "%" : ""}`;
+    const value = entry[0] === "reportPeriod"
+      ? reportPeriodLabel(entry[1])
+      : entry[0] === "comparisonPeriod" ? comparisonPeriodLabel(entry[1]) : entry[1];
+    return `${labels[entry[0]]}: ${value}${entry[0] === "gapThreshold" ? "%" : ""}`;
   });
   return `${report.name}${parts.length ? ` · ${parts.join(" · ")}` : " · No optional filters"}`;
 }
@@ -778,18 +1000,61 @@ function renderExecutiveReport() {
 }
 
 function handleConfigurationSubmit(event) {
+  // Prevent the browser's default form submission, which would reload the page
+  // and erase the uploaded catalog stored in JavaScript memory.
   event.preventDefault();
+
+  // Convert the current form controls into a plain object. For example:
+  // { groupBy: "genre", country: "Colombia", dateFrom: "2025-01-01" }
   const filters = formValues(configurationForm);
+
+  // Validation depends on the selected report. A comparison needs a comparison
+  // preset, while a gap report also needs a grouping field and threshold.
   const error = validateConfiguration(filters);
   if (error) {
+    // Keep the user on this screen, show a visible message, and announce the
+    // same message through the page's aria-live status area.
     configurationError.textContent = error;
     configurationError.hidden = false;
     showStatus(error);
     return;
   }
   configurationError.hidden = true;
+
+  if (state.selectedReportId === "comparison") {
+    // The comparison preset becomes two concrete, equivalent date ranges used
+    // by the existing comparison calculation.
+    const comparisonRange = resolveComparisonPeriod(filters.comparisonPeriod, latestCatalogDate());
+    if (!comparisonRange) {
+      configurationError.textContent = "The catalog needs at least one valid date to compare reporting periods.";
+      configurationError.hidden = false;
+      showStatus(configurationError.textContent);
+      return;
+    }
+    Object.assign(filters, comparisonRange);
+  } else {
+    // Relative presets need concrete boundaries before the shared filtering
+    // function can use them. The latest valid catalog date is the report anchor,
+    // so archived catalogs still produce meaningful recurring reports.
+    const range = resolveReportingPeriod(filters.reportPeriod, latestCatalogDate());
+    if (!range) {
+      configurationError.textContent = "The catalog needs at least one valid date to use a preset reporting period.";
+      configurationError.hidden = false;
+      showStatus(configurationError.textContent);
+      return;
+    }
+    Object.assign(filters, range);
+  }
+
+  // Save validated settings in shared state so Back navigation and the final
+  // executive report use the same configuration as the preview.
   state.filters = filters;
+
+  // renderPreview() performs the report-specific filtering and calculations,
+  // then renders KPI cards, charts, and the matching-titles table.
   renderPreview();
+
+  // Only advance after the configuration is valid and the preview is ready.
   showScreen("preview");
   showStatus(`${state.previewRecords.length} matching titles calculated.`);
 }
@@ -844,6 +1109,9 @@ configurationForm.addEventListener("submit", handleConfigurationSubmit);
 configurationForm.addEventListener("reset", function () {
   window.setTimeout(function () {
     state.filters = {};
+    // Rebuild the fields so dynamic help text returns to its unselected state
+    // together with the native form controls.
+    renderConfiguration();
     configurationError.hidden = true;
     showStatus("Report settings cleared.");
   }, 0);

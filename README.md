@@ -30,23 +30,36 @@ Generate executive report
 
 ### Recent Additions Summary
 
-Analyzes titles added during a user-selected date range.
+Analyzes titles added during a required preset reporting period. Available
+periods include rolling windows, complete calendar periods, the current catalog
+quarter, and catalog year to date. CatalogLens resolves each preset from the
+latest valid `date_added` in the uploaded catalog and shows the exact dates
+before the report is applied.
 
 ### Distribution Analysis
 
-Groups matching titles by a selected catalog field such as genre, country, type, or rating.
+Groups titles from a required preset reporting period by a selected catalog
+field such as genre, country, type, or rating.
 
 ### Catalog Comparison
 
-Compares record counts across two user-selected date periods. The application distinguishes record-count difference from percentage change and does not calculate percentage change when the first period contains zero records.
+Compares record counts across two equivalent periods created by one comparison
+preset, such as latest 30 days versus previous 30 days or current catalog
+quarter versus previous quarter. The application distinguishes record-count
+difference from percentage change and does not calculate percentage change when
+the first period contains zero records.
 
 ### Gap Analysis
 
-Identifies categories whose catalog share falls below a percentage threshold entered by the user. CatalogLens does not decide that a category is underrepresented without this measurable threshold.
+Identifies categories within a required preset reporting period whose catalog
+share falls below a percentage threshold entered by the user. CatalogLens does
+not decide that a category is underrepresented without this measurable
+threshold.
 
 ### Custom Report
 
-Applies optional filters and groups the matching results by a selected field.
+Applies a required preset reporting period and optional catalog filters, then
+groups the matching results by a selected field.
 
 ## Expected CSV Fields
 
@@ -79,7 +92,7 @@ The repository includes [sample-data.csv](sample-data.csv), containing 20 clearl
 * CSV drag-and-drop and file picker
 * File validation and detected-field display
 * Five selectable report templates
-* Contextual configuration fields
+* Contextual configuration fields, including explicit date-period presets for recurring reports
 * Filter options populated from uploaded data
 * Reusable filtering, grouping, percentage, comparison, and gap calculations
 * Calculated KPI cards
@@ -152,4 +165,4 @@ The executive summary uses deterministic templates based only on calculated resu
 ## Author
 
 James Alvarado
-AI Product Builder at Pursuit
+AI Native program Student
