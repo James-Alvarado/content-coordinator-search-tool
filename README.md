@@ -85,7 +85,7 @@ title,type,country,genre,rating,release_year,date_added,description
 Example Title,Movie,Colombia,Drama,8.1,2024,2025-01-15,A fictional catalog description.
 ```
 
-The repository includes [sample-data.csv](sample-data.csv), containing 20 clearly fictional records for local testing.
+The repository includes [sample-data.csv](sample-data.csv), containing 200 clearly fictional records with varied dates, countries, genres, content types, ratings, and release years for local testing.
 
 ## Core Features
 
@@ -98,6 +98,8 @@ The repository includes [sample-data.csv](sample-data.csv), containing 20 clearl
 * Calculated KPI cards
 * Responsive results table
 * Accessible HTML and CSS charts
+* A visually distinct executive brief with narrative summary, emphasized KPIs,
+  report-specific charts, composition diagrams, and numbered key findings
 * Deterministic executive summary and key findings
 * Back navigation that preserves uploaded data and settings
 * Start Over control for loading a different catalog

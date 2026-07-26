@@ -149,24 +149,52 @@
           <article class="executive-report">
             <header class="executive-header">
               <div>
-                <p class="kicker">CatalogLens executive report</p>
+                <p class="executive-label">CatalogLens · Executive brief</p>
                 <h2 id="executive-heading">Executive Report</h2>
                 <p id="executive-context"></p>
               </div>
               <div class="generated-date"><span>Generated</span><strong id="generated-date"></strong></div>
             </header>
+
+            <!-- The final report starts with a narrative takeaway. Preview keeps
+                 the detailed table; this section helps an executive understand
+                 the main result before reading individual charts. -->
+            <section class="executive-hero" aria-labelledby="summary-heading">
+              <div>
+                <p class="section-overline">At a glance</p>
+                <h2 id="summary-heading">What the catalog data shows</h2>
+              </div>
+              <p id="executive-summary"></p>
+            </section>
+
             <div class="kpi-grid executive-kpis" id="executive-kpis"></div>
-            <div class="chart-grid" id="executive-charts"></div>
-            <div class="findings-grid">
-              <section class="insight-panel" aria-labelledby="summary-heading">
-                <h2 id="summary-heading">Executive summary</h2>
-                <p id="executive-summary"></p>
-              </section>
-              <section class="insight-panel" aria-labelledby="findings-heading">
-                <h2 id="findings-heading">Key findings</h2>
-                <ul id="key-findings"></ul>
-              </section>
-            </div>
+
+            <section class="executive-section" aria-labelledby="visual-overview-heading">
+              <div class="executive-section-heading">
+                <div>
+                  <p class="section-overline">Visual overview</p>
+                  <h2 id="visual-overview-heading">Measured results</h2>
+                </div>
+                <span>Calculated from the current report scope</span>
+              </div>
+              <div class="executive-chart-grid" id="executive-charts"></div>
+            </section>
+
+            <section class="executive-section findings-section" aria-labelledby="findings-heading">
+              <div class="executive-section-heading">
+                <div>
+                  <p class="section-overline">Decision snapshot</p>
+                  <h2 id="findings-heading">Key findings</h2>
+                </div>
+                <span>Observed patterns, not recommendations</span>
+              </div>
+              <ol class="executive-findings" id="key-findings"></ol>
+            </section>
+
+            <footer class="executive-footer">
+              <strong>About this report</strong>
+              <p>Results use only the uploaded catalog and selected settings. “Not provided” values remain visible in calculations. This MVP does not infer causes or make acquisition recommendations.</p>
+            </footer>
           </article>
         </div>
 

@@ -870,6 +870,203 @@ function renderCharts(container) {
   }
 }
 
+const executiveChartColors = ["#5635c6", "#5791df", "#25a18e", "#e09f3e", "#d65d7a", "#8c87a3"];
+
+function createExecutiveVisual(title, description, wide) {
+  const card = document.createElement("section");
+  card.className = `executive-visual${wide ? " executive-visual-wide" : ""}`;
+  const heading = document.createElement("h3");
+  heading.textContent = title;
+  const text = document.createElement("p");
+  text.textContent = description;
+  card.append(heading, text);
+  return card;
+}
+
+function executiveChartRecords() {
+  // Comparison charts use Period B as the current period. All other report
+  // types use the same records already approved on the Preview screen.
+  return state.selectedReportId === "comparison" ? state.comparison.periodB : state.previewRecords;
+}
+
+function executiveGroupingField() {
+  return state.selectedReportId === "recent" ? "genre" : state.filters.groupBy || "genre";
+}
+
+function createDonutVisual(title, description, categories, total) {
+  const card = createExecutiveVisual(title, description, false);
+  const visible = categories.slice(0, 5);
+  const otherCount = categories.slice(5).reduce(function (sum, item) { return sum + item.count; }, 0);
+  const parts = otherCount > 0 ? [...visible, { label: "Other", count: otherCount }] : visible;
+  const layout = document.createElement("div");
+  layout.className = "donut-layout";
+  const donut = document.createElement("div");
+  donut.className = "donut-chart";
+  donut.setAttribute("role", "img");
+  donut.setAttribute("aria-label", `${title}. ${parts.map(function (item) { return `${item.label}: ${item.count}`; }).join(", ")}`);
+  let currentPercentage = 0;
+  donut.style.background = `conic-gradient(${parts.map(function (item, index) {
+    const start = currentPercentage;
+    currentPercentage += calculatePercentage(item.count, total) || 0;
+    return `${executiveChartColors[index % executiveChartColors.length]} ${start}% ${currentPercentage}%`;
+  }).join(", ")})`;
+  const center = document.createElement("div");
+  center.className = "donut-center";
+  const centerValue = document.createElement("strong");
+  centerValue.textContent = total;
+  const centerLabel = document.createElement("span");
+  centerLabel.textContent = "titles";
+  center.append(centerValue, centerLabel);
+  donut.append(center);
+
+  const legend = document.createElement("div");
+  legend.className = "donut-legend";
+
+  parts.forEach(function (item, index) {
+    const percentage = calculatePercentage(item.count, total) || 0;
+    const color = executiveChartColors[index % executiveChartColors.length];
+    const row = document.createElement("div");
+    row.className = "donut-legend-item";
+    const swatch = document.createElement("span");
+    swatch.className = "donut-swatch";
+    swatch.style.background = color;
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    const value = document.createElement("strong");
+    value.textContent = `${item.count} · ${percentage.toFixed(1)}%`;
+    row.append(swatch, label, value);
+    legend.append(row);
+  });
+  layout.append(donut, legend);
+  card.append(layout);
+  return card;
+}
+
+function monthlySeries(records) {
+  const counts = records.reduce(function (result, record) {
+    if (!record.dateAdded) return result;
+    const key = `${record.dateAdded.getUTCFullYear()}-${String(record.dateAdded.getUTCMonth() + 1).padStart(2, "0")}`;
+    result[key] = (result[key] || 0) + 1;
+    return result;
+  }, {});
+  return Object.entries(counts).sort(function (a, b) {
+    return a[0].localeCompare(b[0]);
+  }).map(function (entry) {
+    const date = new Date(`${entry[0]}-01T00:00:00Z`);
+    return {
+      label: new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit", timeZone: "UTC" }).format(date),
+      count: entry[1]
+    };
+  });
+}
+
+function createVerticalBarVisual(title, description, categories) {
+  const card = createExecutiveVisual(title, description, false);
+  const chart = document.createElement("div");
+  chart.className = "vertical-bar-chart";
+  chart.setAttribute("role", "img");
+  chart.setAttribute("aria-label", categories.map(function (item) { return `${item.label}: ${item.count}`; }).join(", "));
+  const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
+  categories.slice(0, 6).forEach(function (item, index) {
+    const column = document.createElement("div");
+    column.className = "vertical-bar-column";
+    const value = document.createElement("strong");
+    value.textContent = item.count;
+    const track = document.createElement("div");
+    track.className = "vertical-bar-track";
+    const fill = document.createElement("div");
+    fill.className = "vertical-bar-fill";
+    fill.style.height = `${(item.count / maximum) * 100}%`;
+    fill.style.background = index === 0 ? "#5635c6" : "#8da9eb";
+    track.append(fill);
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    column.append(value, track, label);
+    chart.append(column);
+  });
+  card.append(chart);
+  return card;
+}
+
+function createTrendVisual(records) {
+  const series = monthlySeries(records);
+  const card = createExecutiveVisual("Titles added over time", "Monthly additions within the selected reporting period.", false);
+  const chart = document.createElement("div");
+  chart.className = "line-chart";
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 300 150");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", series.map(function (item) { return `${item.label}: ${item.count} titles`; }).join(", "));
+  const maximum = Math.max(...series.map(function (item) { return item.count; }), 1);
+  [25, 60, 95, 130].forEach(function (y) {
+    const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    gridLine.setAttribute("x1", "15");
+    gridLine.setAttribute("x2", "290");
+    gridLine.setAttribute("y1", y);
+    gridLine.setAttribute("y2", y);
+    gridLine.setAttribute("class", "line-grid");
+    svg.append(gridLine);
+  });
+  const points = series.map(function (item, index) {
+    const x = series.length === 1 ? 150 : 20 + (index / (series.length - 1)) * 265;
+    const y = 130 - (item.count / maximum) * 105;
+    return { ...item, x, y };
+  });
+  const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  polyline.setAttribute("points", points.map(function (point) { return `${point.x},${point.y}`; }).join(" "));
+  polyline.setAttribute("class", "line-series");
+  svg.append(polyline);
+  points.forEach(function (point) {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", point.x);
+    circle.setAttribute("cy", point.y);
+    circle.setAttribute("r", "4");
+    circle.setAttribute("class", "line-point");
+    svg.append(circle);
+  });
+  const labels = document.createElement("div");
+  labels.className = "line-chart-labels";
+  series.forEach(function (item) {
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    labels.append(label);
+  });
+  chart.append(svg, labels);
+  card.append(chart);
+  return card;
+}
+
+function renderExecutiveCharts(container) {
+  const records = executiveChartRecords();
+  container.replaceChildren();
+  if (records.length === 0) return;
+  const groupingField = executiveGroupingField();
+  const comparisonBars = state.selectedReportId === "comparison"
+    ? [
+        { label: "Period A", count: state.comparison.periodA.length },
+        { label: "Period B", count: state.comparison.periodB.length }
+      ]
+    : countCategories(records, "country");
+
+  // The three-card layout mirrors a familiar executive dashboard: composition,
+  // a direct category comparison, and a time trend. Each card keeps visible
+  // values and an accessible text description.
+  container.append(
+    createDonutVisual(
+      `Distribution by ${groupLabel(groupingField)}`,
+      `Share of titles grouped by ${groupLabel(groupingField).toLowerCase()}.`,
+      countCategories(records, groupingField),
+      records.length
+    ),
+    createVerticalBarVisual(
+      state.selectedReportId === "comparison" ? "Titles by period" : "Titles by country",
+      state.selectedReportId === "comparison" ? "Direct record-count comparison." : "Top six country categories.",
+      comparisonBars
+    ),
+    createTrendVisual(records)
+  );
+}
+
 function formatDate(date) {
   return date ? new Intl.DateTimeFormat("en-US").format(date) : "Unknown";
 }
@@ -885,9 +1082,19 @@ function renderTable() {
 
   state.previewRecords.forEach(function (record) {
     const row = document.createElement("tr");
-    [record.title, record.type, record.genre, record.country, record.releaseYear, record.rating, formatDate(record.dateAdded)].forEach(function (value) {
+    const columns = [
+      { label: "Title", value: record.title },
+      { label: "Type", value: record.type },
+      { label: "Genre", value: record.genre },
+      { label: "Country", value: record.country },
+      { label: "Release year", value: record.releaseYear },
+      { label: "Rating", value: record.rating },
+      { label: "Date added", value: formatDate(record.dateAdded) }
+    ];
+    columns.forEach(function (column) {
       const cell = document.createElement("td");
-      cell.textContent = displayValue(value);
+      cell.dataset.label = column.label;
+      cell.textContent = displayValue(column.value);
       row.append(cell);
     });
     body.append(row);
@@ -987,7 +1194,9 @@ function renderExecutiveReport() {
   document.querySelector("#executive-context").textContent = filterSummary();
   document.querySelector("#generated-date").textContent = new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(new Date());
   renderKpis(document.querySelector("#executive-kpis"), state.previewRecords);
-  renderCharts(document.querySelector("#executive-charts"));
+  // Executive charts intentionally use a different visual system from Preview.
+  // Preview supports verification; this view ranks and summarizes the results.
+  renderExecutiveCharts(document.querySelector("#executive-charts"));
   document.querySelector("#executive-summary").textContent = buildSummary();
   const list = document.querySelector("#key-findings");
   list.replaceChildren();
