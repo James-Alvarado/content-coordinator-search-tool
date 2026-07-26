@@ -1,235 +1,155 @@
-# Content Coordinator Catalog Reporter
+# CatalogLens
 
-An AI-assisted reporting tool that helps Content Coordinators quickly answer recurring business questions about their content catalog without manually searching through multiple spreadsheets and data sources.
-
----
+CatalogLens is a browser-based reporting MVP for Content Coordinators working at streaming and media companies.
 
 ## Problem
 
-Content Coordinators are responsible for answering questions about the company's content catalog to support content acquisition and business decisions.
-
-Today, the information needed to answer these questions is spread across multiple spreadsheets and data sources. As a result, Content Coordinators spend hours every week manually searching, filtering, comparing, and summarizing catalog information.
-
-### Problem Statement
-
-> **The Content Coordinator struggles to answer questions about content distribution and regional trends quickly because the information needed is spread across multiple files and data sources. This results in hours of manual searching and comparing each week, slowing decisions about which content the company should acquire.**
-
----
+> The Content Coordinator struggles to answer questions about content distribution and regional trends quickly because the information needed is spread across multiple files and data sources. This results in hours of manual searching and comparing each week, slowing decisions about which content the company should acquire.
 
 ## Solution
 
-The Content Coordinator Catalog Reporter simplifies this workflow by allowing users to upload a catalog, select the type of business report they need, preview the results, and generate an executive-ready report in just a few steps.
+> The MVP is a reporting tool that enables the Content Coordinator to upload a content catalog, select a report type, preview the calculated results, and generate an executive report. Its purpose is to help the user answer recurring business questions about content distribution and regional trends without manually searching and comparing information across multiple files and data sources.
 
-Instead of manually combining information from multiple files, the system automatically analyzes the catalog and presents the results using KPIs, charts, and a concise executive summary.
+CatalogLens processes CSV data locally in the browser. It does not send uploaded catalogs to a backend or external service.
 
----
-
-## Target User
-
-**Content Coordinator**
-
-A professional working at a streaming or media company who:
-
-- Manages movie and TV catalog information
-- Supports Content Acquisition teams
-- Answers recurring business questions
-- Creates reports for directors and executives
-- Identifies catalog trends and content gaps
-
----
-
-## MVP Goal
-
-Validate that a guided reporting workflow can significantly reduce the time required for a Content Coordinator to answer recurring catalog questions.
-
-The MVP focuses on solving **one core workflow** rather than building a complete catalog management platform.
-
----
-
-# User Workflow
+## Approved User Flow
 
 ```text
-Upload Catalog
+Upload catalog
       ↓
-System validates the file
-and detects catalog fields
+Choose report type
       ↓
-Choose Report Type
+Configure relevant settings
       ↓
-Configure Relevant Filters
+Preview calculated results
       ↓
-Preview Results
-      ↓
-Generate Executive Report
+Generate executive report
 ```
 
----
+## Report Types
 
-# Core Features
+### Recent Additions Summary
 
-## Upload Catalog
+Analyzes titles added during a user-selected date range.
 
-- Upload CSV catalog
-- Validate file
-- Automatically detect catalog fields
+### Distribution Analysis
 
-Detected fields may include:
+Groups matching titles by a selected catalog field such as genre, country, type, or rating.
 
-- Title
-- Type
-- Country
-- Genre
-- Rating
-- Release Year
-- Date Added
-- Description
+### Catalog Comparison
 
----
+Compares record counts across two user-selected date periods. The application distinguishes record-count difference from percentage change and does not calculate percentage change when the first period contains zero records.
 
-## Report Templates
+### Gap Analysis
 
-The report templates were designed from recurring questions identified during user interviews.
+Identifies categories whose catalog share falls below a percentage threshold entered by the user. CatalogLens does not decide that a category is underrepresented without this measurable threshold.
 
-Current templates include:
+### Custom Report
 
-- Recent Additions Summary
-- Distribution Analysis
-- Catalog Comparison
-- Gap Analysis
-- Custom Report
+Applies optional filters and groups the matching results by a selected field.
 
----
+## Expected CSV Fields
 
-## Contextual Filters
+CatalogLens recognizes reasonable header variations for:
 
-Instead of showing every possible filter, the application only displays filters relevant to the selected report.
+* `title`
+* `type`
+* `country`
+* `genre`
+* `rating`
+* `release_year`
+* `date_added`
+* `description`
 
-Examples include:
+Examples such as `Title`, `Release Year`, `releaseYear`, `Date Added`, and `dateAdded` are normalized internally.
 
-- Genre
-- Country
-- Region
-- Content Type
-- Rating
-- Release Year
-- Date Added
+The title field is required. Optional missing information appears as **Not provided**. Invalid dates appear as **Unknown** and are excluded from date-range calculations.
 
----
+## CSV Example
 
-## Preview Results
+```csv
+title,type,country,genre,rating,release_year,date_added,description
+Example Title,Movie,Colombia,Drama,8.1,2024,2025-01-15,A fictional catalog description.
+```
 
-Before generating the final report, the user can review:
+The repository includes [sample-data.csv](sample-data.csv), containing 20 clearly fictional records for local testing.
 
-- Matching titles
-- KPI cards
-- Active filters
-- Calculated metrics
+## Core Features
 
-This allows the user to verify the results before creating the final report.
+* CSV drag-and-drop and file picker
+* File validation and detected-field display
+* Five selectable report templates
+* Contextual configuration fields
+* Filter options populated from uploaded data
+* Reusable filtering, grouping, percentage, comparison, and gap calculations
+* Calculated KPI cards
+* Responsive results table
+* Accessible HTML and CSS charts
+* Deterministic executive summary and key findings
+* Back navigation that preserves uploaded data and settings
+* Start Over control for loading a different catalog
 
----
+## Technology
 
-## Executive Report
+* HTML
+* CSS
+* Vanilla JavaScript
+* Browser File API
 
-The final report includes:
+No framework, package manager, backend, database, external API, chart dependency, or AI service is required.
 
-- KPI summary
-- Distribution charts
-- Trend visualizations
-- Executive summary
-- Key insights generated from the catalog data
+## How to Run
 
-The report is designed to support business discussions and content acquisition meetings.
+1. Open the project folder in Cursor, VS Code, or another editor.
+2. Start Live Server and open `index.html`.
+3. Download `sample-data.csv` from the upload screen or use the repository copy.
+4. Upload the CSV.
+5. Select a report type.
+6. Complete the relevant settings.
+7. Preview the calculations.
+8. Generate the executive report.
 
----
+## Project Structure
 
-# Current MVP Scope
+```text
+content-coordinator-search-tool/
+├── index.html
+├── styles.css
+├── script.js
+├── data.js
+├── sample-data.csv
+└── README.md
+```
 
-The first version validates one complete reporting workflow.
+## Privacy
 
-Current MVP:
+CSV files remain in browser memory and are not uploaded or saved. Start Over removes the current catalog from application state.
 
-- Upload catalog
-- Generate a Recent Additions Summary
-- Preview results
-- Generate an executive report
+## Scope Limits
 
-Additional report templates will be expanded after validating the initial workflow.
+CatalogLens does not include:
 
----
+* Authentication
+* Team collaboration
+* Database or cloud storage
+* Saved report history
+* Scheduled or emailed reports
+* PDF export
+* Predictive analytics
+* Acquisition recommendations
+* Natural-language catalog questions
+* AI-generated summaries
 
-# Out of Scope
+The executive summary uses deterministic templates based only on calculated results. It does not explain why a trend occurred or recommend an acquisition.
 
-The following features are intentionally excluded from the first MVP:
+## Known MVP Limitations
 
-- User authentication
-- Database integration
-- Live production catalog
-- Team collaboration
-- Saved reports
-- Scheduled reports
-- AI recommendations
-- Predictive analytics
-- Natural language search
-- PDF export
-- Dashboard customization
+* CSV files are limited to 5 MB.
+* Dates must be recognizable by the browser’s standard date parser.
+* Multi-country cells are treated as one category unless the source CSV separates them into individual records.
+* Charts show the ten largest categories to remain readable; all matching records remain available in the table.
 
-These features may be explored in future iterations.
+## Author
 
----
-
-# Technology
-
-Frontend
-
-- HTML
-- CSS
-- JavaScript
-
-Data
-
-- CSV upload
-- Client-side filtering
-- KPI calculations
-
-Visualization
-
-- Charts
-- KPI cards
-- Executive summary
-
----
-
-# Success Metrics
-
-The MVP will be considered successful if a Content Coordinator can:
-
-- Upload a catalog successfully
-- Generate a report in a few minutes
-- Understand the preview metrics
-- Trust the generated results
-- Answer recurring business questions faster than the current manual process
-
----
-
-# Future Improvements
-
-Potential future enhancements include:
-
-- Natural language questions
-- Additional report templates
-- Database integrations
-- Saved reports
-- PDF export
-- Historical trend dashboards
-- AI-powered report recommendations
-
----
-
-# Why This Project
-
-This project was created as part of the Pursuit AI Native program to demonstrate how AI-assisted workflows can improve operational efficiency by solving a real problem identified through user interviews.
-
-Rather than building a feature-rich catalog management system, the MVP focuses on validating a single hypothesis:
-
-> A guided reporting workflow can help Content Coordinators answer recurring catalog questions significantly faster than the current manual process.
+James Alvarado
+AI Product Builder at Pursuit

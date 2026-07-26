@@ -3,218 +3,175 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Upload, filter, review, and report on a media catalog.">
-    <title>Content Coordinator Catalog Workspace</title>
+    <meta name="description" content="CatalogLens turns a local CSV catalog into data-grounded reports.">
+    <title>CatalogLens</title>
     <link rel="stylesheet" href="styles.css">
     <script src="data.js" defer></script>
     <script src="script.js" defer></script>
   </head>
   <body>
-    <header class="app-header">
-      <div class="page-container header-layout">
-        <div>
-          <p class="eyebrow">Catalog operations</p>
-          <h1>Content Coordinator Workspace</h1>
-          <p class="header-description">
-            Turn local catalog files into filtered results and an executive-ready summary.
-          </p>
-        </div>
-        <p class="privacy-note">Files stay in your browser</p>
-      </div>
+    <header class="topbar">
+      <a class="brand" href="#main-content" aria-label="CatalogLens home">
+        <span class="brand-mark" aria-hidden="true">CL</span>
+        <span>CatalogLens</span>
+      </a>
+      <!-- Start Over intentionally discards the in-memory catalog after user confirmation. -->
+      <button class="button button-quiet" id="start-over-button" type="button" hidden>Start Over</button>
     </header>
 
-    <nav class="workflow-nav" aria-label="Catalog report workflow">
-      <ol class="page-container workflow-steps">
-        <li class="workflow-step is-active" data-step="1"><span>1</span><strong>Upload</strong></li>
-        <li class="workflow-step" data-step="2"><span>2</span><strong>Filter</strong></li>
-        <li class="workflow-step" data-step="3"><span>3</span><strong>Review</strong></li>
-        <li class="workflow-step" data-step="4"><span>4</span><strong>Report</strong></li>
-      </ol>
-    </nav>
-
-    <main class="page-container app-main">
-      <div id="app-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
-
-      <section class="panel upload-panel" id="upload-section" aria-labelledby="upload-heading">
-        <div class="section-intro">
-          <p class="step-kicker">Step 1 · Upload catalog</p>
-          <h2 id="upload-heading">Start with your catalog data</h2>
-          <p>Upload a CSV or JSON file, or use the fictional sample catalog.</p>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Workflow progress">
+        <p class="sidebar-label">Report workflow</p>
+        <ol class="workflow-list">
+          <li class="workflow-item is-active" data-step="1"><span>1</span><div><strong>Upload catalog</strong><small>Import and validate CSV</small></div></li>
+          <li class="workflow-item" data-step="2"><span>2</span><div><strong>Choose report</strong><small>Select a business question</small></div></li>
+          <li class="workflow-item" data-step="3"><span>3</span><div><strong>Configure</strong><small>Set relevant filters</small></div></li>
+          <li class="workflow-item" data-step="4"><span>4</span><div><strong>Preview</strong><small>Verify calculated results</small></div></li>
+          <li class="workflow-item" data-step="5"><span>5</span><div><strong>Executive report</strong><small>Review data-grounded findings</small></div></li>
+        </ol>
+        <div class="privacy-card">
+          <strong>Local processing</strong>
+          <p>Your CSV stays in this browser and is not uploaded to a service.</p>
         </div>
+      </aside>
 
-        <div class="upload-layout">
-          <div class="upload-drop-zone">
-            <div class="upload-icon" aria-hidden="true">↑</div>
-            <h3>Choose a catalog file</h3>
-            <p>Accepted formats: CSV and JSON</p>
-            <!-- The visible label opens the hidden file input, which keeps the upload control accessible. -->
-            <label class="button button-primary file-button" for="catalog-file" tabindex="0">Browse files</label>
-            <input id="catalog-file" class="visually-hidden" type="file" accept=".csv,.json,text/csv,application/json">
-          </div>
+      <main id="main-content" class="main-content">
+        <div id="live-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
 
-          <div class="sample-card">
-            <span class="sample-badge">Demo ready</span>
-            <h3>Explore with sample data</h3>
-            <p>Load 20 fictional movie and TV records to test every part of the workflow.</p>
-            <!-- This button calls local JavaScript data; it does not contact a server. -->
-            <button class="button button-secondary" id="sample-data-button" type="button">
-              Use Sample Data
-            </button>
-          </div>
-        </div>
-
-        <div class="upload-feedback" id="upload-feedback">
-          <strong>No catalog loaded</strong>
-          <span>Select a file or use the sample data to continue.</span>
-        </div>
-      </section>
-
-      <section class="panel filters-panel" id="filters-section" aria-labelledby="filters-heading" hidden>
-        <div class="section-intro section-intro-row">
-          <div>
-            <p class="step-kicker">Step 2 · Configure report</p>
-            <h2 id="filters-heading">Choose the catalog records you need</h2>
-            <p>Filters work together. Leave a field set to “All” to include every value.</p>
-          </div>
-          <div class="loaded-file-summary">
-            <span id="loaded-file-name">Catalog loaded</span>
-            <strong id="loaded-record-count">0 records</strong>
-          </div>
-        </div>
-
-        <form id="filters-form">
-          <div class="filters-grid">
-            <div class="form-field form-field-wide">
-              <label for="title-filter">Title keyword</label>
-              <input id="title-filter" type="search" placeholder="Search a title">
-            </div>
-            <div class="form-field">
-              <label for="type-filter">Content type</label>
-              <select id="type-filter"><option value="">All types</option></select>
-            </div>
-            <div class="form-field">
-              <label for="genre-filter">Genre</label>
-              <select id="genre-filter"><option value="">All genres</option></select>
-            </div>
-            <div class="form-field">
-              <label for="country-filter">Country</label>
-              <select id="country-filter"><option value="">All countries</option></select>
-            </div>
-            <div class="form-field">
-              <label for="language-filter">Language</label>
-              <select id="language-filter"><option value="">All languages</option></select>
-            </div>
-            <div class="form-field">
-              <label for="year-filter">Release year</label>
-              <select id="year-filter"><option value="">All years</option></select>
-            </div>
-            <div class="form-field">
-              <label for="status-filter">Status</label>
-              <select id="status-filter"><option value="">All statuses</option></select>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <!-- type="reset" clears the form; JavaScript also resets the preview state. -->
-            <button class="button button-secondary" id="clear-filters-button" type="reset">
-              Clear Filters
-            </button>
-            <!-- Submitting the form supports both this button and the Enter key. -->
-            <button class="button button-primary" type="submit">Apply Filters</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="review-section" id="review-section" aria-labelledby="review-heading" hidden>
-        <div class="section-intro section-intro-row">
-          <div>
-            <p class="step-kicker">Step 3 · Preview results</p>
-            <h2 id="review-heading">Review matching catalog records</h2>
-            <p id="filter-summary">All catalog records are included.</p>
-          </div>
-          <!-- The report is generated only from the currently filtered records. -->
-          <button class="button button-primary" id="generate-report-button" type="button">
-            Generate Executive Report
-          </button>
-        </div>
-
-        <div class="metrics-grid" id="metrics-grid"></div>
-
-        <div class="panel table-panel">
-          <div class="table-heading">
-            <h3>Matching titles</h3>
-            <strong id="results-count">0 records</strong>
-          </div>
-          <div class="empty-state" id="results-empty" hidden>
-            No catalog records match these filters. Try clearing one or more filters.
-          </div>
-          <div class="table-scroll" id="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Title</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">Genre</th>
-                  <th scope="col">Country</th>
-                  <th scope="col">Language</th>
-                  <th scope="col">Year</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Rating</th>
-                </tr>
-              </thead>
-              <tbody id="results-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <div class="report-section" id="report-section" hidden>
-        <div class="report-toolbar no-print">
-          <!-- This returns to the existing results without discarding the uploaded catalog or filters. -->
-          <button class="button button-secondary" id="back-to-results-button" type="button">
-            ← Back to Results
-          </button>
-          <!-- window.print() uses the browser print dialog; no PDF library or backend is needed. -->
-          <button class="button button-primary" id="print-report-button" type="button">
-            Print Report
-          </button>
-        </div>
-
-        <article class="executive-report">
-          <header class="report-header">
-            <div>
-              <p class="step-kicker">Step 4 · Executive report</p>
-              <h2 id="report-heading">Content Catalog Executive Report</h2>
-              <p id="report-filter-summary"></p>
-            </div>
-            <div class="report-date">
-              <span>Generated</span>
-              <strong id="report-date"></strong>
-            </div>
+        <section class="screen is-visible" id="upload-screen" aria-labelledby="upload-heading">
+          <header class="screen-heading">
+            <p class="kicker">Step 1 of 5</p>
+            <h1 id="upload-heading">Upload Catalog</h1>
+            <p>Import a CSV catalog. CatalogLens validates rows and detects available fields locally.</p>
           </header>
 
-          <div class="report-kpis" id="report-kpis"></div>
+          <div class="panel upload-panel">
+            <!-- The zone receives dropped files; the real button below provides keyboard file access. -->
+            <div class="drop-zone" id="drop-zone">
+              <div class="upload-symbol" aria-hidden="true">↑</div>
+              <h2>Drag and drop your CSV here</h2>
+              <p>or use the file picker</p>
+              <span class="file-hint">CSV · Maximum 5 MB</span>
+              <button class="button button-secondary browse-button" id="browse-file-button" type="button">Browse CSV</button>
+              <input class="visually-hidden" id="catalog-file" type="file" accept=".csv,text/csv">
+            </div>
 
-          <div class="charts-grid" id="charts-grid"></div>
+            <div class="upload-message" id="upload-message">
+              <strong>No file selected</strong>
+              <span>Upload a CSV to begin the reporting workflow.</span>
+            </div>
 
-          <section class="insights-panel" aria-labelledby="insights-heading">
-            <p class="step-kicker">Rule-based observations</p>
-            <h3 id="insights-heading">Executive insights</h3>
-            <ul id="insights-list"></ul>
+            <div class="detected-fields" id="detected-fields" hidden>
+              <h2>Fields detected</h2>
+              <div class="field-tags" id="field-tags"></div>
+              <p id="import-details"></p>
+            </div>
+
+            <div class="screen-actions">
+              <a class="button button-secondary" href="sample-data.csv" download>Download Fictional Sample CSV</a>
+              <!-- Continue remains disabled until CSV validation succeeds. -->
+              <button class="button button-primary" id="upload-continue-button" type="button" disabled>Continue</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="report-type-screen" aria-labelledby="report-type-heading" hidden>
+          <header class="screen-heading">
+            <p class="kicker">Step 2 of 5</p>
+            <h1 id="report-type-heading">Choose Report Type</h1>
+            <p>Select the recurring business question you want CatalogLens to calculate.</p>
+          </header>
+          <div class="report-type-grid" id="report-type-grid"></div>
+          <div class="screen-actions">
+            <button class="button button-secondary" data-go-screen="upload" type="button">Back</button>
+            <button class="button button-primary" id="report-type-continue-button" type="button" disabled>Continue</button>
+          </div>
+        </section>
+
+        <section class="screen" id="configure-screen" aria-labelledby="configure-heading" hidden>
+          <header class="screen-heading">
+            <p class="kicker">Step 3 of 5</p>
+            <h1 id="configure-heading">Configure Report</h1>
+            <p id="configure-description"></p>
+          </header>
+          <form class="panel configuration-panel" id="configuration-form" novalidate>
+            <div class="selected-report-banner">
+              <span>Selected report</span>
+              <strong id="selected-report-name"></strong>
+            </div>
+            <div class="configuration-grid" id="configuration-fields"></div>
+            <div class="form-error" id="configuration-error" role="alert" hidden></div>
+            <div class="screen-actions">
+              <button class="button button-secondary" data-go-screen="report-type" type="button">Back</button>
+              <button class="button button-quiet" id="clear-configuration-button" type="reset">Clear Filters</button>
+              <button class="button button-primary" type="submit">Apply Filters</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="screen" id="preview-screen" aria-labelledby="preview-heading" hidden>
+          <header class="screen-heading screen-heading-row">
+            <div>
+              <p class="kicker">Step 4 of 5</p>
+              <h1 id="preview-heading">Preview Results</h1>
+              <p id="preview-context"></p>
+            </div>
+            <span class="report-pill" id="preview-report-type"></span>
+          </header>
+
+          <div class="kpi-grid" id="preview-kpis"></div>
+          <div class="chart-grid" id="preview-charts"></div>
+
+          <section class="panel table-panel" aria-labelledby="matching-titles-heading">
+            <div class="table-heading">
+              <h2 id="matching-titles-heading">Matching titles</h2>
+              <strong id="matching-count"></strong>
+            </div>
+            <div class="empty-state" id="preview-empty" hidden>No titles match the current report settings.</div>
+            <div class="table-scroll" id="preview-table-scroll">
+              <table>
+                <thead><tr><th>Title</th><th>Type</th><th>Genre</th><th>Country</th><th>Release year</th><th>Rating</th><th>Date added</th></tr></thead>
+                <tbody id="preview-table-body"></tbody>
+              </table>
+            </div>
           </section>
-        </article>
-      </div>
 
-      <noscript>
-        <p class="noscript-message">JavaScript must be enabled to process local catalog files.</p>
-      </noscript>
-    </main>
+          <div class="screen-actions">
+            <button class="button button-secondary" data-go-screen="configure" type="button">Back to Filters</button>
+            <button class="button button-primary" id="generate-report-button" type="button">Generate Report</button>
+          </div>
+        </section>
 
-    <footer>
-      <div class="page-container footer-layout">
-        <p>Content Coordinator MVP · Fictional data only</p>
-        <p>No uploaded files leave your browser.</p>
-      </div>
-    </footer>
+        <div class="screen" id="executive-screen" hidden>
+          <div class="report-toolbar">
+            <button class="button button-secondary" data-go-screen="preview" type="button">Back to Preview</button>
+          </div>
+          <article class="executive-report">
+            <header class="executive-header">
+              <div>
+                <p class="kicker">CatalogLens executive report</p>
+                <h2 id="executive-heading">Executive Report</h2>
+                <p id="executive-context"></p>
+              </div>
+              <div class="generated-date"><span>Generated</span><strong id="generated-date"></strong></div>
+            </header>
+            <div class="kpi-grid executive-kpis" id="executive-kpis"></div>
+            <div class="chart-grid" id="executive-charts"></div>
+            <div class="findings-grid">
+              <section class="insight-panel" aria-labelledby="summary-heading">
+                <h2 id="summary-heading">Executive summary</h2>
+                <p id="executive-summary"></p>
+              </section>
+              <section class="insight-panel" aria-labelledby="findings-heading">
+                <h2 id="findings-heading">Key findings</h2>
+                <ul id="key-findings"></ul>
+              </section>
+            </div>
+          </article>
+        </div>
+
+        <noscript><p class="form-error">JavaScript must be enabled to process CSV files.</p></noscript>
+      </main>
+    </div>
   </body>
 </html>
