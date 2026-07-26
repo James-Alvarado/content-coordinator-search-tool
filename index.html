@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Upload, filter, review, and report on a media catalog.">
+    <title>Content Coordinator Catalog Workspace</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js" defer></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="page-container header-layout">
+        <div>
+          <p class="eyebrow">Catalog operations</p>
+          <h1>Content Coordinator Workspace</h1>
+          <p class="header-description">
+            Turn local catalog files into filtered results and an executive-ready summary.
+          </p>
+        </div>
+        <p class="privacy-note">Files stay in your browser</p>
+      </div>
+    </header>
+
+    <nav class="workflow-nav" aria-label="Catalog report workflow">
+      <ol class="page-container workflow-steps">
+        <li class="workflow-step is-active" data-step="1"><span>1</span><strong>Upload</strong></li>
+        <li class="workflow-step" data-step="2"><span>2</span><strong>Filter</strong></li>
+        <li class="workflow-step" data-step="3"><span>3</span><strong>Review</strong></li>
+        <li class="workflow-step" data-step="4"><span>4</span><strong>Report</strong></li>
+      </ol>
+    </nav>
+
+    <main class="page-container app-main">
+      <div id="app-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <section class="panel upload-panel" id="upload-section" aria-labelledby="upload-heading">
+        <div class="section-intro">
+          <p class="step-kicker">Step 1 · Upload catalog</p>
+          <h2 id="upload-heading">Start with your catalog data</h2>
+          <p>Upload a CSV or JSON file, or use the fictional sample catalog.</p>
+        </div>
+
+        <div class="upload-layout">
+          <div class="upload-drop-zone">
+            <div class="upload-icon" aria-hidden="true">↑</div>
+            <h3>Choose a catalog file</h3>
+            <p>Accepted formats: CSV and JSON</p>
+            <!-- The visible label opens the hidden file input, which keeps the upload control accessible. -->
+            <label class="button button-primary file-button" for="catalog-file" tabindex="0">Browse files</label>
+            <input id="catalog-file" class="visually-hidden" type="file" accept=".csv,.json,text/csv,application/json">
+          </div>
+
+          <div class="sample-card">
+            <span class="sample-badge">Demo ready</span>
+            <h3>Explore with sample data</h3>
+            <p>Load 20 fictional movie and TV records to test every part of the workflow.</p>
+            <!-- This button calls local JavaScript data; it does not contact a server. -->
+            <button class="button button-secondary" id="sample-data-button" type="button">
+              Use Sample Data
+            </button>
+          </div>
+        </div>
+
+        <div class="upload-feedback" id="upload-feedback">
+          <strong>No catalog loaded</strong>
+          <span>Select a file or use the sample data to continue.</span>
+        </div>
+      </section>
+
+      <section class="panel filters-panel" id="filters-section" aria-labelledby="filters-heading" hidden>
+        <div class="section-intro section-intro-row">
+          <div>
+            <p class="step-kicker">Step 2 · Configure report</p>
+            <h2 id="filters-heading">Choose the catalog records you need</h2>
+            <p>Filters work together. Leave a field set to “All” to include every value.</p>
+          </div>
+          <div class="loaded-file-summary">
+            <span id="loaded-file-name">Catalog loaded</span>
+            <strong id="loaded-record-count">0 records</strong>
+          </div>
+        </div>
+
+        <form id="filters-form">
+          <div class="filters-grid">
+            <div class="form-field form-field-wide">
+              <label for="title-filter">Title keyword</label>
+              <input id="title-filter" type="search" placeholder="Search a title">
+            </div>
+            <div class="form-field">
+              <label for="type-filter">Content type</label>
+              <select id="type-filter"><option value="">All types</option></select>
+            </div>
+            <div class="form-field">
+              <label for="genre-filter">Genre</label>
+              <select id="genre-filter"><option value="">All genres</option></select>
+            </div>
+            <div class="form-field">
+              <label for="country-filter">Country</label>
+              <select id="country-filter"><option value="">All countries</option></select>
+            </div>
+            <div class="form-field">
+              <label for="language-filter">Language</label>
+              <select id="language-filter"><option value="">All languages</option></select>
+            </div>
+            <div class="form-field">
+              <label for="year-filter">Release year</label>
+              <select id="year-filter"><option value="">All years</option></select>
+            </div>
+            <div class="form-field">
+              <label for="status-filter">Status</label>
+              <select id="status-filter"><option value="">All statuses</option></select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <!-- type="reset" clears the form; JavaScript also resets the preview state. -->
+            <button class="button button-secondary" id="clear-filters-button" type="reset">
+              Clear Filters
+            </button>
+            <!-- Submitting the form supports both this button and the Enter key. -->
+            <button class="button button-primary" type="submit">Apply Filters</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="review-section" id="review-section" aria-labelledby="review-heading" hidden>
+        <div class="section-intro section-intro-row">
+          <div>
+            <p class="step-kicker">Step 3 · Preview results</p>
+            <h2 id="review-heading">Review matching catalog records</h2>
+            <p id="filter-summary">All catalog records are included.</p>
+          </div>
+          <!-- The report is generated only from the currently filtered records. -->
+          <button class="button button-primary" id="generate-report-button" type="button">
+            Generate Executive Report
+          </button>
+        </div>
+
+        <div class="metrics-grid" id="metrics-grid"></div>
+
+        <div class="panel table-panel">
+          <div class="table-heading">
+            <h3>Matching titles</h3>
+            <strong id="results-count">0 records</strong>
+          </div>
+          <div class="empty-state" id="results-empty" hidden>
+            No catalog records match these filters. Try clearing one or more filters.
+          </div>
+          <div class="table-scroll" id="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Title</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Genre</th>
+                  <th scope="col">Country</th>
+                  <th scope="col">Language</th>
+                  <th scope="col">Year</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Rating</th>
+                </tr>
+              </thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div class="report-section" id="report-section" hidden>
+        <div class="report-toolbar no-print">
+          <!-- This returns to the existing results without discarding the uploaded catalog or filters. -->
+          <button class="button button-secondary" id="back-to-results-button" type="button">
+            ← Back to Results
+          </button>
+          <!-- window.print() uses the browser print dialog; no PDF library or backend is needed. -->
+          <button class="button button-primary" id="print-report-button" type="button">
+            Print Report
+          </button>
+        </div>
+
+        <article class="executive-report">
+          <header class="report-header">
+            <div>
+              <p class="step-kicker">Step 4 · Executive report</p>
+              <h2 id="report-heading">Content Catalog Executive Report</h2>
+              <p id="report-filter-summary"></p>
+            </div>
+            <div class="report-date">
+              <span>Generated</span>
+              <strong id="report-date"></strong>
+            </div>
+          </header>
+
+          <div class="report-kpis" id="report-kpis"></div>
+
+          <div class="charts-grid" id="charts-grid"></div>
+
+          <section class="insights-panel" aria-labelledby="insights-heading">
+            <p class="step-kicker">Rule-based observations</p>
+            <h3 id="insights-heading">Executive insights</h3>
+            <ul id="insights-list"></ul>
+          </section>
+        </article>
+      </div>
+
+      <noscript>
+        <p class="noscript-message">JavaScript must be enabled to process local catalog files.</p>
+      </noscript>
+    </main>
+
+    <footer>
+      <div class="page-container footer-layout">
+        <p>Content Coordinator MVP · Fictional data only</p>
+        <p>No uploaded files leave your browser.</p>
+      </div>
+    </footer>
+  </body>
+</html>

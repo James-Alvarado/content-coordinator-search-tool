@@ -1,127 +1,235 @@
-# Content Coordinator Search Tool
+# Content Coordinator Catalog Reporter
 
-## Project Overview
+An AI-assisted reporting tool that helps Content Coordinators quickly answer recurring business questions about their content catalog without manually searching through multiple spreadsheets and data sources.
 
-The Content Coordinator Search Tool is a simple search and retrieval application designed to help Content Coordinators quickly find information inside a media content catalog.
+---
 
-Content Coordinators may need to answer questions about movies and television shows, including titles, genres, countries of origin, release years, and other descriptive information. This information may be stored across multiple files, making it slow and difficult to locate.
+## Problem
 
-This MVP provides one central search tool where a Content Coordinator can enter a keyword or title and receive matching catalog results.
+Content Coordinators are responsible for answering questions about the company's content catalog to support content acquisition and business decisions.
 
-## Problem Statement
+Today, the information needed to answer these questions is spread across multiple spreadsheets and data sources. As a result, Content Coordinators spend hours every week manually searching, filtering, comparing, and summarizing catalog information.
 
-Content Coordinators struggle to quickly find accurate catalog information because they must manually search through multiple data sources and files. This process takes time and makes it harder to respond to catalog questions efficiently.
+### Problem Statement
+
+> **The Content Coordinator struggles to answer questions about content distribution and regional trends quickly because the information needed is spread across multiple files and data sources. This results in hours of manual searching and comparing each week, slowing decisions about which content the company should acquire.**
+
+---
+
+## Solution
+
+The Content Coordinator Catalog Reporter simplifies this workflow by allowing users to upload a catalog, select the type of business report they need, preview the results, and generate an executive-ready report in just a few steps.
+
+Instead of manually combining information from multiple files, the system automatically analyzes the catalog and presents the results using KPIs, charts, and a concise executive summary.
+
+---
+
+## Target User
+
+**Content Coordinator**
+
+A professional working at a streaming or media company who:
+
+- Manages movie and TV catalog information
+- Supports Content Acquisition teams
+- Answers recurring business questions
+- Creates reports for directors and executives
+- Identifies catalog trends and content gaps
+
+---
 
 ## MVP Goal
 
-The goal of this MVP is to help a Content Coordinator search mocked catalog data and retrieve relevant content information from one place.
+Validate that a guided reporting workflow can significantly reduce the time required for a Content Coordinator to answer recurring catalog questions.
 
-## Core User
+The MVP focuses on solving **one core workflow** rather than building a complete catalog management platform.
 
-The primary user is a Content Coordinator working for a streaming or media company.
+---
 
-## Core User Flow
-
-1. The Content Coordinator opens the search tool.
-2. The Content Coordinator enters a keyword or title.
-3. The system searches the mocked catalog data.
-4. The system displays matching catalog results.
-5. The Content Coordinator reviews the results and answers the catalog question.
-
-## MVP Features
-
-* A search input where the user can enter a title or keyword
-* Mocked catalog data containing movies and television shows
-* Keyword-based search and filtering
-* A results section that displays matching catalog items
-* A message when no matching results are found
-
-## Example Catalog Information
-
-Each catalog item may include:
-
-* Title
-* Content type
-* Genre
-* Country of origin
-* Release year
-* Language
-* Short description
-
-## Technologies
-
-This project will initially use:
-
-* HTML
-* CSS
-* JavaScript
-* Git
-* GitHub
-
-## Project Scope
-
-### Included in the MVP
-
-* Searching mocked catalog data
-* Displaying matching results
-* Handling searches with no results
-* Creating a simple and usable interface
-
-### Not Included in the MVP
-
-* User accounts
-* Authentication
-* Artificial intelligence recommendations
-* Trend analysis
-* Real company databases
-* External APIs
-* Advanced reporting
-* Editing or uploading catalog records
-
-These features may be explored in future versions after the core search and retrieval workflow is validated.
-
-## Project Structure
+# User Workflow
 
 ```text
-content-coordinator-search-tool/
-├── index.html
-├── styles.css
-├── script.js
-├── data.js
-└── README.md
+Upload Catalog
+      ↓
+System validates the file
+and detects catalog fields
+      ↓
+Choose Report Type
+      ↓
+Configure Relevant Filters
+      ↓
+Preview Results
+      ↓
+Generate Executive Report
 ```
 
-## How to Run the Project
+---
 
-1. Clone the repository.
-2. Open the project folder in Cursor or another code editor.
-3. Open `index.html` in a browser or use the Live Server extension.
-4. Enter a keyword or title in the search box.
-5. Review the matching catalog results.
+# Core Features
 
-## Current Status
+## Upload Catalog
 
-The project is currently in the MVP development stage.
+- Upload CSV catalog
+- Validate file
+- Automatically detect catalog fields
 
-The first version will focus on:
+Detected fields may include:
 
-* Creating mocked catalog data
-* Building the search input
-* Connecting the search input to the data
-* Displaying matching results
+- Title
+- Type
+- Country
+- Genre
+- Rating
+- Release Year
+- Date Added
+- Description
 
-## Future Improvements
+---
 
-Possible future improvements include:
+## Report Templates
 
-* Connecting multiple real data sources
-* Adding filters for genre, country, year, and content type
-* Allowing users to upload catalog files
-* Adding advanced search
-* Creating downloadable reports
-* Adding AI-assisted catalog questions
+The report templates were designed from recurring questions identified during user interviews.
 
-## Author
+Current templates include:
 
-James Alvarado
-AI Product Builder at Pursuit
+- Recent Additions Summary
+- Distribution Analysis
+- Catalog Comparison
+- Gap Analysis
+- Custom Report
+
+---
+
+## Contextual Filters
+
+Instead of showing every possible filter, the application only displays filters relevant to the selected report.
+
+Examples include:
+
+- Genre
+- Country
+- Region
+- Content Type
+- Rating
+- Release Year
+- Date Added
+
+---
+
+## Preview Results
+
+Before generating the final report, the user can review:
+
+- Matching titles
+- KPI cards
+- Active filters
+- Calculated metrics
+
+This allows the user to verify the results before creating the final report.
+
+---
+
+## Executive Report
+
+The final report includes:
+
+- KPI summary
+- Distribution charts
+- Trend visualizations
+- Executive summary
+- Key insights generated from the catalog data
+
+The report is designed to support business discussions and content acquisition meetings.
+
+---
+
+# Current MVP Scope
+
+The first version validates one complete reporting workflow.
+
+Current MVP:
+
+- Upload catalog
+- Generate a Recent Additions Summary
+- Preview results
+- Generate an executive report
+
+Additional report templates will be expanded after validating the initial workflow.
+
+---
+
+# Out of Scope
+
+The following features are intentionally excluded from the first MVP:
+
+- User authentication
+- Database integration
+- Live production catalog
+- Team collaboration
+- Saved reports
+- Scheduled reports
+- AI recommendations
+- Predictive analytics
+- Natural language search
+- PDF export
+- Dashboard customization
+
+These features may be explored in future iterations.
+
+---
+
+# Technology
+
+Frontend
+
+- HTML
+- CSS
+- JavaScript
+
+Data
+
+- CSV upload
+- Client-side filtering
+- KPI calculations
+
+Visualization
+
+- Charts
+- KPI cards
+- Executive summary
+
+---
+
+# Success Metrics
+
+The MVP will be considered successful if a Content Coordinator can:
+
+- Upload a catalog successfully
+- Generate a report in a few minutes
+- Understand the preview metrics
+- Trust the generated results
+- Answer recurring business questions faster than the current manual process
+
+---
+
+# Future Improvements
+
+Potential future enhancements include:
+
+- Natural language questions
+- Additional report templates
+- Database integrations
+- Saved reports
+- PDF export
+- Historical trend dashboards
+- AI-powered report recommendations
+
+---
+
+# Why This Project
+
+This project was created as part of the Pursuit AI Native program to demonstrate how AI-assisted workflows can improve operational efficiency by solving a real problem identified through user interviews.
+
+Rather than building a feature-rich catalog management system, the MVP focuses on validating a single hypothesis:
+
+> A guided reporting workflow can help Content Coordinators answer recurring catalog questions significantly faster than the current manual process.
