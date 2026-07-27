@@ -53,6 +53,87 @@ const initialTheme = savedTheme()
   || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
 applyTheme(initialTheme);
 
+const introScreen = document.querySelector("#intro-screen");
+const introGetStarted = document.querySelector("#intro-get-started");
+const introSkip = document.querySelector("#intro-skip");
+const appRegions = [document.querySelector(".topbar"), document.querySelector(".app-shell")];
+const introTransitionDuration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 480;
+let introTimer;
+let introClosing = false;
+
+function introWasSeen() {
+  try {
+    return window.sessionStorage.getItem("catalogLensIntroSeen") === "true";
+  } catch {
+    return false;
+  }
+}
+
+function rememberIntro() {
+  try {
+    window.sessionStorage.setItem("catalogLensIntroSeen", "true");
+  } catch {
+    // The intro can still close normally if browser session storage is blocked.
+  }
+}
+
+function setApplicationInert(isInert) {
+  appRegions.forEach(function (region) {
+    region.inert = isInert;
+    if (isInert) region.setAttribute("aria-hidden", "true");
+    else region.removeAttribute("aria-hidden");
+  });
+}
+
+function closeIntro() {
+  if (introClosing || introScreen.hidden) return;
+  introClosing = true;
+  window.clearTimeout(introTimer);
+  rememberIntro();
+  introScreen.classList.add("is-leaving");
+  document.body.classList.remove("intro-active");
+
+  window.setTimeout(function () {
+    introScreen.hidden = true;
+    introScreen.setAttribute("aria-hidden", "true");
+    setApplicationInert(false);
+    browseFileButton.focus({ preventScroll: true });
+  }, introTransitionDuration);
+}
+
+function initializeIntro() {
+  if (introWasSeen()) {
+    introScreen.hidden = true;
+    introScreen.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  document.body.classList.add("intro-active");
+  setApplicationInert(true);
+  window.setTimeout(function () {
+    introGetStarted.focus({ preventScroll: true });
+  }, 0);
+  introTimer = window.setTimeout(closeIntro, 4000);
+}
+
+introGetStarted.addEventListener("click", closeIntro);
+introSkip.addEventListener("click", closeIntro);
+introScreen.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") closeIntro();
+  if (event.key === "Tab") {
+    const firstControl = introGetStarted;
+    const lastControl = introSkip;
+    if (event.shiftKey && document.activeElement === firstControl) {
+      event.preventDefault();
+      lastControl.focus();
+    } else if (!event.shiftKey && document.activeElement === lastControl) {
+      event.preventDefault();
+      firstControl.focus();
+    }
+  }
+});
+initializeIntro();
+
 const fieldAliases = {
   title: ["title", "name"],
   type: ["type", "contenttype", "content_type", "content type"],

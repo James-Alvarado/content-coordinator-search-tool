@@ -10,6 +10,22 @@
     <script src="script.js" defer></script>
   </head>
   <body>
+    <section class="intro-screen" id="intro-screen" role="dialog" aria-modal="true" aria-labelledby="intro-title" aria-describedby="intro-description">
+      <div class="intro-glow intro-glow-left" aria-hidden="true"></div>
+      <div class="intro-glow intro-glow-right" aria-hidden="true"></div>
+      <div class="intro-content">
+        <div class="intro-brand" aria-hidden="true">CL</div>
+        <p class="intro-eyebrow">Catalog intelligence for content teams</p>
+        <h1 id="intro-title">CatalogLens</h1>
+        <p id="intro-description">Turn catalog files into clear distribution insights and executive-ready reports—without sending your data anywhere.</p>
+        <div class="intro-actions">
+          <button class="button button-primary intro-primary" id="intro-get-started" type="button">Get Started</button>
+          <button class="intro-skip" id="intro-skip" type="button">Skip intro</button>
+        </div>
+        <p class="intro-timer">The workspace will open automatically in 4 seconds.</p>
+      </div>
+    </section>
+
     <header class="topbar">
       <a class="brand" href="#main-content" aria-label="CatalogLens home">
         <span class="brand-mark" aria-hidden="true">CL</span>
