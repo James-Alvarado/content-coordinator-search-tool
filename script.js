@@ -28,6 +28,30 @@ const configurationFields = document.querySelector("#configuration-fields");
 const configurationError = document.querySelector("#configuration-error");
 const generateReportButton = document.querySelector("#generate-report-button");
 const startOverButton = document.querySelector("#start-over-button");
+const themeToggle = document.querySelector("#theme-toggle");
+
+function savedTheme() {
+  try {
+    return window.localStorage.getItem("catalogLensTheme");
+  } catch {
+    return null;
+  }
+}
+
+function applyTheme(theme) {
+  const isLight = theme === "light";
+  document.documentElement.dataset.theme = isLight ? "light" : "dark";
+  themeToggle.setAttribute("aria-pressed", String(isLight));
+  themeToggle.querySelector(".theme-toggle-icon").textContent = isLight ? "☾" : "☀";
+  themeToggle.querySelector(".theme-toggle-label").textContent = isLight ? "Dark mode" : "Light mode";
+  themeToggle.title = isLight ? "Switch to dark mode" : "Switch to light mode";
+}
+
+// Use a saved choice first; otherwise respect the device preference. This only
+// changes CSS colors and never resets the uploaded catalog or report settings.
+const initialTheme = savedTheme()
+  || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+applyTheme(initialTheme);
 
 const fieldAliases = {
   title: ["title", "name"],
@@ -1330,6 +1354,15 @@ generateReportButton.addEventListener("click", function () {
   showScreen("executive");
 });
 startOverButton.addEventListener("click", resetApplication);
+themeToggle.addEventListener("click", function () {
+  const nextTheme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  applyTheme(nextTheme);
+  try {
+    window.localStorage.setItem("catalogLensTheme", nextTheme);
+  } catch {
+    // The switch still works for this page visit if browser storage is blocked.
+  }
+});
 
 document.querySelectorAll("[data-go-screen]").forEach(function (button) {
   button.addEventListener("click", function () {

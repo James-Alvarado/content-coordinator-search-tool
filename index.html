@@ -15,8 +15,15 @@
         <span class="brand-mark" aria-hidden="true">CL</span>
         <span>CatalogLens</span>
       </a>
-      <!-- Start Over intentionally discards the in-memory catalog after user confirmation. -->
-      <button class="button button-quiet" id="start-over-button" type="button" hidden>Start Over</button>
+      <div class="topbar-actions">
+        <!-- The theme control changes presentation only and keeps the report state intact. -->
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">☀</span>
+          <span class="theme-toggle-label">Light mode</span>
+        </button>
+        <!-- Start Over intentionally discards the in-memory catalog after user confirmation. -->
+        <button class="button button-quiet" id="start-over-button" type="button" hidden>Start Over</button>
+      </div>
     </header>
 
     <div class="app-shell">
