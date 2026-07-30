@@ -1,6 +1,7 @@
 const state = {
   catalog: [],
   detectedFields: [],
+  datasetSource: "",
   selectedReportId: "",
   filters: {},
   previewRecords: [],
@@ -138,7 +139,7 @@ const fieldAliases = {
   title: ["title", "name"],
   type: ["type", "contenttype", "content_type", "content type"],
   country: ["country", "countryoforigin", "country_of_origin", "region"],
-  genre: ["genre", "category"],
+  genre: ["genre", "category", "listed_in", "listed in"],
   rating: ["rating", "score"],
   releaseYear: ["releaseyear", "release_year", "release year", "year"],
   dateAdded: ["dateadded", "date_added", "date added", "addeddate"],
@@ -312,7 +313,7 @@ function parseCatalogCsv(csvText) {
       type: String(rawRecord.type || "").trim(),
       country: String(rawRecord.country || "").trim(),
       genre: String(rawRecord.genre || "").trim(),
-      rating: parseNumber(rawRecord.rating),
+      rating: String(rawRecord.rating || "").trim(),
       releaseYear: parseNumber(rawRecord.releaseYear),
       dateAdded,
       dateAddedRaw: rawDate,
@@ -349,6 +350,41 @@ function renderDetectedFields(result, fileName) {
   container.hidden = false;
 }
 
+function setDataset(result, source) {
+  state.catalog = result.records;
+  state.detectedFields = result.detected;
+  state.datasetSource = source;
+  state.selectedReportId = "";
+  state.filters = {};
+  state.previewRecords = [];
+  state.comparison = null;
+  state.generatedReport = false;
+  renderDetectedFields(result, source === "default" ? "netflix_titles.csv" : "Custom CSV");
+  uploadContinueButton.disabled = false;
+  startOverButton.hidden = false;
+
+  const sourceLabel = source === "default"
+    ? "Netflix Movies and TV Shows dataset (Kaggle)"
+    : "Custom dataset";
+  renderUploadMessage("success", `Loaded: ${sourceLabel}`, `${result.records.length} valid catalog records are ready.`);
+  showStatus(`Loaded: ${sourceLabel}. ${result.records.length} valid records are ready.`);
+}
+
+async function loadDefaultDataset() {
+  renderUploadMessage("loading", "Loading default catalog", "Preparing the Netflix Movies and TV Shows dataset…");
+  try {
+    const response = await fetch("public/data/netflix_titles.csv");
+    if (!response.ok) throw new Error(`The default dataset request failed (${response.status}).`);
+    const result = parseCatalogCsv(await response.text());
+    setDataset(result, "default");
+  } catch (error) {
+    uploadContinueButton.disabled = true;
+    document.querySelector("#detected-fields").hidden = true;
+    renderUploadMessage("error", "Default catalog could not be loaded", "You can still upload a compatible CSV below.");
+    showStatus(`Default dataset error: ${error.message}`);
+  }
+}
+
 async function processFile(file) {
   if (!file) return;
   if (!file.name.toLowerCase().endsWith(".csv")) {
@@ -367,16 +403,7 @@ async function processFile(file) {
   renderUploadMessage("loading", "Reading catalog", `Validating ${file.name}…`);
   try {
     const result = parseCatalogCsv(await file.text());
-    state.catalog = result.records;
-    state.detectedFields = result.detected;
-    state.selectedReportId = "";
-    state.filters = {};
-    state.previewRecords = [];
-    renderDetectedFields(result, file.name);
-    renderUploadMessage("success", "Upload successful", `${result.records.length} valid catalog records imported.`);
-    uploadContinueButton.disabled = false;
-    startOverButton.hidden = false;
-    showStatus(`${result.records.length} valid records imported from ${file.name}.`);
+    setDataset(result, "custom");
   } catch (error) {
     state.catalog = [];
     uploadContinueButton.disabled = true;
@@ -1374,20 +1401,15 @@ function handleConfigurationSubmit(event) {
 }
 
 function resetApplication() {
-  if (state.catalog.length > 0 && !window.confirm("Start over and remove the current catalog from memory?")) return;
-  state.catalog = [];
-  state.detectedFields = [];
+  if (state.catalog.length > 0 && !window.confirm("Start over and restore the default Netflix catalog?")) return;
   state.selectedReportId = "";
   state.filters = {};
   state.previewRecords = [];
   state.comparison = null;
   state.generatedReport = false;
   fileInput.value = "";
-  uploadContinueButton.disabled = true;
-  startOverButton.hidden = true;
-  document.querySelector("#detected-fields").hidden = true;
-  renderUploadMessage("neutral", "No file selected", "Upload a CSV to begin the reporting workflow.");
   showScreen("upload");
+  loadDefaultDataset();
 }
 
 // The native button supplies keyboard access to the visually hidden file input.
@@ -1450,3 +1472,5 @@ document.querySelectorAll("[data-go-screen]").forEach(function (button) {
     showScreen(button.dataset.goScreen);
   });
 });
+
+loadDefaultDataset();

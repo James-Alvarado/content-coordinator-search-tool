@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CatalogLens turns a local CSV catalog into data-grounded reports.">
+    <meta name="description" content="CatalogLens turns the bundled Netflix catalog or a custom CSV into data-grounded reports.">
     <title>CatalogLens</title>
     <link rel="stylesheet" href="styles.css">
     <script src="data.js" defer></script>
@@ -46,7 +46,7 @@
       <aside class="sidebar" aria-label="Workflow progress">
         <p class="sidebar-label">Report workflow</p>
         <ol class="workflow-list">
-          <li class="workflow-item is-active" data-step="1"><span>1</span><div><strong>Upload catalog</strong><small>Import and validate CSV</small></div></li>
+          <li class="workflow-item is-active" data-step="1"><span>1</span><div><strong>Catalog data</strong><small>Use the default or upload CSV</small></div></li>
           <li class="workflow-item" data-step="2"><span>2</span><div><strong>Choose report</strong><small>Select a business question</small></div></li>
           <li class="workflow-item" data-step="3"><span>3</span><div><strong>Configure</strong><small>Set relevant filters</small></div></li>
           <li class="workflow-item" data-step="4"><span>4</span><div><strong>Preview</strong><small>Verify calculated results</small></div></li>
@@ -64,8 +64,8 @@
         <section class="screen is-visible" id="upload-screen" aria-labelledby="upload-heading">
           <header class="screen-heading">
             <p class="kicker">Step 1 of 5</p>
-            <h1 id="upload-heading">Upload Catalog</h1>
-            <p>Import a CSV catalog. CatalogLens validates rows and detects available fields locally.</p>
+            <h1 id="upload-heading">Catalog Data</h1>
+            <p>The Netflix catalog loads automatically. Upload a compatible CSV at any time to replace it for this session.</p>
           </header>
 
           <div class="panel upload-panel">
@@ -80,8 +80,8 @@
             </div>
 
             <div class="upload-message" id="upload-message">
-              <strong>No file selected</strong>
-              <span>Upload a CSV to begin the reporting workflow.</span>
+              <strong>Loading default catalog</strong>
+              <span>Preparing the Netflix Movies and TV Shows dataset…</span>
             </div>
 
             <div class="detected-fields" id="detected-fields" hidden>
@@ -92,7 +92,7 @@
 
             <div class="screen-actions">
               <a class="button button-secondary" href="sample-data.csv" download>Download Fictional Sample CSV</a>
-              <!-- Continue remains disabled until CSV validation succeeds. -->
+              <!-- Continue remains disabled until the default or an uploaded CSV validates successfully. -->
               <button class="button button-primary" id="upload-continue-button" type="button" disabled>Continue</button>
             </div>
           </div>
@@ -216,7 +216,7 @@
 
             <footer class="executive-footer">
               <strong>About this report</strong>
-              <p>Results use only the uploaded catalog and selected settings. “Not provided” values remain visible in calculations. This MVP does not infer causes or make acquisition recommendations.</p>
+              <p>Results use only the currently loaded catalog and selected settings. “Not provided” values remain visible in calculations. This MVP does not infer causes or make acquisition recommendations.</p>
             </footer>
           </article>
         </div>

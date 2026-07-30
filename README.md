@@ -10,12 +10,14 @@ CatalogLens is a browser-based reporting MVP for Content Coordinators working at
 
 > The MVP is a reporting tool that enables the Content Coordinator to upload a content catalog, select a report type, preview the calculated results, and generate an executive report. Its purpose is to help the user answer recurring business questions about content distribution and regional trends without manually searching and comparing information across multiple files and data sources.
 
-CatalogLens processes CSV data locally in the browser. It does not send uploaded catalogs to a backend or external service.
+CatalogLens starts with the bundled Netflix Movies and TV Shows dataset from
+Kaggle and processes CSV data locally in the browser. It does not send uploaded
+catalogs to a backend or external service.
 
 ## Approved User Flow
 
 ```text
-Upload catalog
+Load the bundled catalog or upload a custom catalog
       ↓
 Choose report type
       ↓
@@ -89,7 +91,8 @@ The repository includes [sample-data.csv](sample-data.csv), containing 200 clear
 
 ## Core Features
 
-* CSV drag-and-drop and file picker
+* Bundled Netflix Movies and TV Shows dataset loaded automatically on startup
+* Optional CSV drag-and-drop and file picker that replaces the current dataset for the session
 * File validation and detected-field display
 * Five selectable report templates
 * Contextual configuration fields, including explicit date-period presets for recurring reports
@@ -102,7 +105,7 @@ The repository includes [sample-data.csv](sample-data.csv), containing 200 clear
   report-specific charts, composition diagrams, and numbered key findings
 * Deterministic executive summary and key findings
 * Back navigation that preserves uploaded data and settings
-* Start Over control for loading a different catalog
+* Start Over control for restoring the bundled Netflix catalog
 
 ## Technology
 
@@ -117,8 +120,8 @@ No framework, package manager, backend, database, external API, chart dependency
 
 1. Open the project folder in Cursor, VS Code, or another editor.
 2. Start Live Server and open `index.html`.
-3. Download `sample-data.csv` from the upload screen or use the repository copy.
-4. Upload the CSV.
+3. Wait for the bundled Netflix catalog to load automatically.
+4. Optionally upload `sample-data.csv` or another compatible CSV to replace it for the session.
 5. Select a report type.
 6. Complete the relevant settings.
 7. Preview the calculations.
@@ -132,13 +135,17 @@ content-coordinator-search-tool/
 ├── styles.css
 ├── script.js
 ├── data.js
+├── public/
+│   └── data/
+│       └── netflix_titles.csv
 ├── sample-data.csv
 └── README.md
 ```
 
 ## Privacy
 
-CSV files remain in browser memory and are not uploaded or saved. Start Over removes the current catalog from application state.
+Uploaded CSV files remain in browser memory and are not uploaded or saved. Start
+Over restores the bundled Netflix catalog.
 
 ## Scope Limits
 
@@ -161,7 +168,7 @@ The executive summary uses deterministic templates based only on calculated resu
 
 * CSV files are limited to 5 MB.
 * Dates must be recognizable by the browser’s standard date parser.
-* Multi-country cells are treated as one category unless the source CSV separates them into individual records.
+* Multi-country and multi-genre cells are treated as one category unless the source CSV separates them into individual records.
 * Charts show the ten largest categories to remain readable; all matching records remain available in the table.
 
 ## Author
