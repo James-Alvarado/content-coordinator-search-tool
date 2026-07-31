@@ -2,6 +2,7 @@ const state = {
   catalog: [],
   detectedFields: [],
   datasetSource: "",
+  cleaningSummary: null,
   selectedReportId: "",
   filters: {},
   previewRecords: [],
@@ -257,18 +258,6 @@ function findCanonicalField(header) {
   }) || null;
 }
 
-function parseDate(value) {
-  if (!value || String(value).trim() === "") return null;
-  const date = new Date(String(value).trim());
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function parseNumber(value) {
-  if (value === null || value === undefined || String(value).trim() === "") return null;
-  const number = Number(String(value).trim());
-  return Number.isFinite(number) ? number : null;
-}
-
 function parseCatalogCsv(csvText) {
   const rows = parseCsvRows(csvText);
   if (rows.length === 0) throw new Error("The CSV is empty.");
@@ -287,42 +276,35 @@ function parseCatalogCsv(csvText) {
   }
 
   const detected = [...new Set(canonicalHeaders.filter(Boolean))];
-  let invalidRows = 0;
-  let invalidDates = 0;
-  const records = [];
+  let missingTitles = 0;
+  const sourceRecords = [];
 
   rows.slice(1).forEach(function (row, rowIndex) {
-    const rawRecord = {};
+    const raw = {};
+    const canonical = {};
+    rawHeaders.forEach(function (header, columnIndex) {
+      raw[header] = row[columnIndex] ?? "";
+    });
     canonicalHeaders.forEach(function (field, columnIndex) {
-      if (field) rawRecord[field] = row[columnIndex] ?? "";
+      if (field) canonical[field] = row[columnIndex] ?? "";
     });
 
-    const title = String(rawRecord.title || "").trim();
-    if (title === "") {
-      invalidRows += 1;
-      return;
-    }
-
-    const rawDate = String(rawRecord.dateAdded || "").trim();
-    const dateAdded = parseDate(rawDate);
-    if (rawDate && !dateAdded) invalidDates += 1;
-
-    records.push({
+    if (String(canonical.title || "").trim() === "") missingTitles += 1;
+    sourceRecords.push({
       id: rowIndex + 1,
-      title,
-      type: String(rawRecord.type || "").trim(),
-      country: String(rawRecord.country || "").trim(),
-      genre: String(rawRecord.genre || "").trim(),
-      rating: String(rawRecord.rating || "").trim(),
-      releaseYear: parseNumber(rawRecord.releaseYear),
-      dateAdded,
-      dateAddedRaw: rawDate,
-      description: String(rawRecord.description || "").trim()
+      raw,
+      canonical
     });
   });
 
-  if (records.length === 0) throw new Error("No valid records were found. Every valid row needs a title.");
-  return { records, detected, invalidRows, invalidDates, rawHeaders };
+  const cleaned = window.CatalogDataCleaning.cleanRecords(sourceRecords);
+  return {
+    records: cleaned.records,
+    cleaningSummary: cleaned.summary,
+    detected,
+    missingTitles,
+    rawHeaders
+  };
 }
 
 function renderUploadMessage(type, heading, detail) {
@@ -345,8 +327,9 @@ function renderDetectedFields(result, fileName) {
     tag.textContent = field;
     tags.append(tag);
   });
+  const summary = result.cleaningSummary;
   document.querySelector("#import-details").textContent =
-    `${fileName} · ${result.records.length} valid records · ${result.invalidRows} invalid rows skipped · ${result.invalidDates} invalid dates treated as unknown`;
+    `${fileName} · ${summary.totalRecordsProcessed} titles · ${summary.reportingRowsCreated} country-genre rows · ${summary.whitespaceValuesTrimmed} whitespace values trimmed · ${summary.datesSuccessfullyParsed} dates parsed · ${summary.datesLeftMissingOrInvalid} dates missing or invalid · ${summary.suspiciousRatingDurationRecordsCorrected} rating/duration corrections`;
   container.hidden = false;
 }
 
@@ -354,6 +337,7 @@ function setDataset(result, source) {
   state.catalog = result.records;
   state.detectedFields = result.detected;
   state.datasetSource = source;
+  state.cleaningSummary = result.cleaningSummary;
   state.selectedReportId = "";
   state.filters = {};
   state.previewRecords = [];
@@ -366,8 +350,8 @@ function setDataset(result, source) {
   const sourceLabel = source === "default"
     ? "Netflix Movies and TV Shows dataset (Kaggle)"
     : "Custom dataset";
-  renderUploadMessage("success", `Loaded: ${sourceLabel}`, `${result.records.length} valid catalog records are ready.`);
-  showStatus(`Loaded: ${sourceLabel}. ${result.records.length} valid records are ready.`);
+  renderUploadMessage("success", `Loaded: ${sourceLabel}`, `${result.cleaningSummary.totalRecordsProcessed} titles are ready across ${result.records.length} country-genre records.`);
+  showStatus(`Loaded: ${sourceLabel}. ${result.cleaningSummary.totalRecordsProcessed} titles are ready.`);
 }
 
 async function loadDefaultDataset() {
@@ -800,12 +784,34 @@ function recordsInPeriod(records, startValue, endValue) {
 }
 
 function groupRecords(records, field) {
-  return records.reduce(function (groups, record) {
+  const recordsToGroup = recordsForGrouping(records, field);
+  return recordsToGroup.reduce(function (groups, record) {
     const label = displayValue(record[field]);
     if (!groups[label]) groups[label] = [];
     groups[label].push(record);
     return groups;
   }, {});
+}
+
+function recordsForGrouping(records, field) {
+  const keyForRecord = field === "country"
+    ? function (record) { return `${record.sourceRecordId ?? record.id}:${record.country}`; }
+    : field === "genre"
+      ? function (record) { return `${record.sourceRecordId ?? record.id}:${record.genre}`; }
+      : function (record) { return record.sourceRecordId ?? record.showId ?? record.id; };
+  return [...new Map(records.map(function (record) {
+    return [keyForRecord(record), record];
+  })).values()];
+}
+
+function uniqueTitleRecords(records) {
+  return [...new Map(records.map(function (record) {
+    return [record.sourceRecordId ?? record.showId ?? record.id, record];
+  })).values()];
+}
+
+function uniqueTitleCount(records) {
+  return uniqueTitleRecords(records).length;
 }
 
 function countCategories(records, field) {
@@ -823,9 +829,13 @@ function calculatePercentageChange(previous, current) {
 }
 
 function categoriesBelowThreshold(records, field, threshold) {
-  return countCategories(records, field)
+  const categories = countCategories(records, field);
+  const total = categories.reduce(function (sum, category) {
+    return sum + category.count;
+  }, 0);
+  return categories
     .map(function (category) {
-      return { ...category, share: calculatePercentage(category.count, records.length) };
+      return { ...category, share: calculatePercentage(category.count, total) };
     })
     .filter(function (category) { return category.share !== null && category.share < threshold; })
     .sort(function (a, b) { return a.share - b.share; });
@@ -856,7 +866,7 @@ function topCategory(records, field) {
 
 function calculateKpis(records) {
   return {
-    total: records.length,
+    total: uniqueTitleCount(records),
     countries: new Set(records.map(function (record) { return record.country; }).filter(Boolean)).size,
     genres: new Set(records.map(function (record) { return record.genre; }).filter(Boolean)).size,
     topGenre: topCategory(records, "genre")?.label || "Not available",
@@ -1075,7 +1085,7 @@ function createDonutVisual(title, description, categories, total) {
 }
 
 function monthlySeries(records) {
-  const counts = records.reduce(function (result, record) {
+  const counts = uniqueTitleRecords(records).reduce(function (result, record) {
     if (!record.dateAdded) return result;
     const key = `${record.dateAdded.getUTCFullYear()}-${String(record.dateAdded.getUTCMonth() + 1).padStart(2, "0")}`;
     result[key] = (result[key] || 0) + 1;
@@ -1173,10 +1183,14 @@ function renderExecutiveCharts(container) {
   container.replaceChildren();
   if (records.length === 0) return;
   const groupingField = executiveGroupingField();
+  const groupingCategories = countCategories(records, groupingField);
+  const groupingTotal = groupingCategories.reduce(function (sum, category) {
+    return sum + category.count;
+  }, 0);
   const comparisonBars = state.selectedReportId === "comparison"
     ? [
-        { label: "Period A", count: state.comparison.periodA.length },
-        { label: "Period B", count: state.comparison.periodB.length }
+        { label: "Period A", count: uniqueTitleCount(state.comparison.periodA) },
+        { label: "Period B", count: uniqueTitleCount(state.comparison.periodB) }
       ]
     : countCategories(records, "country");
 
@@ -1187,8 +1201,8 @@ function renderExecutiveCharts(container) {
     createDonutVisual(
       `Distribution by ${groupLabel(groupingField)}`,
       `Share of titles grouped by ${groupLabel(groupingField).toLowerCase()}.`,
-      countCategories(records, groupingField),
-      records.length
+      groupingCategories,
+      groupingTotal
     ),
     createVerticalBarVisual(
       state.selectedReportId === "comparison" ? "Titles by period" : "Titles by country",
@@ -1206,7 +1220,10 @@ function formatDate(date) {
 function renderTable() {
   const body = document.querySelector("#preview-table-body");
   body.replaceChildren();
-  document.querySelector("#matching-count").textContent = `${state.previewRecords.length} records`;
+  const titleCount = uniqueTitleCount(state.previewRecords);
+  document.querySelector("#matching-count").textContent = state.previewRecords.length === titleCount
+    ? `${titleCount} titles`
+    : `${titleCount} titles · ${state.previewRecords.length} country-genre records`;
   const empty = state.previewRecords.length === 0;
   document.querySelector("#preview-empty").hidden = !empty;
   document.querySelector("#preview-table-scroll").hidden = empty;
@@ -1283,8 +1300,8 @@ function buildSummary() {
     : topCategory(records, "genre");
 
   if (report.id === "comparison") {
-    const a = state.comparison.periodA.length;
-    const b = state.comparison.periodB.length;
+    const a = uniqueTitleCount(state.comparison.periodA);
+    const b = uniqueTitleCount(state.comparison.periodB);
     const change = calculatePercentageChange(a, b);
     return `Period A contains ${a} titles and Period B contains ${b} titles. ${
       change === null
@@ -1299,8 +1316,11 @@ function buildSummary() {
   const dateSentence = report.id === "recent"
     ? `From ${state.filters.dateFrom} through ${state.filters.dateTo}, `
     : "";
-  return `${dateSentence}${records.length} titles match the report settings.${
-    top ? ` ${top.label} is the largest measured category with ${top.count} titles (${calculatePercentage(top.count, records.length).toFixed(1)}%).` : ""
+  const titleCount = uniqueTitleCount(records);
+  const groupedTotal = countCategories(records, report.id === "distribution" || report.id === "custom" ? state.filters.groupBy : "genre")
+    .reduce(function (sum, category) { return sum + category.count; }, 0);
+  return `${dateSentence}${titleCount} titles match the report settings.${
+    top ? ` ${top.label} is the largest measured category with ${top.count} titles (${calculatePercentage(top.count, groupedTotal).toFixed(1)}%).` : ""
   }`;
 }
 
@@ -1312,9 +1332,9 @@ function keyFindings() {
   const type = topCategory(records, "type");
   if (genre) findings.push(`${genre.label} is the largest genre with ${genre.count} titles.`);
   if (country) findings.push(`${country.label} is the largest country category with ${country.count} titles.`);
-  if (type) findings.push(`${type.label} accounts for ${calculatePercentage(type.count, records.length).toFixed(1)}% of matching records.`);
+  if (type) findings.push(`${type.label} accounts for ${calculatePercentage(type.count, uniqueTitleCount(records)).toFixed(1)}% of matching titles.`);
   if (state.selectedReportId === "comparison") {
-    const difference = state.comparison.periodB.length - state.comparison.periodA.length;
+    const difference = uniqueTitleCount(state.comparison.periodB) - uniqueTitleCount(state.comparison.periodA);
     findings.push(`Period B has ${Math.abs(difference)} ${difference >= 0 ? "more" : "fewer"} titles than Period A (record-count difference).`);
   }
   return findings;
@@ -1397,7 +1417,7 @@ function handleConfigurationSubmit(event) {
 
   // Only advance after the configuration is valid and the preview is ready.
   showScreen("preview");
-  showStatus(`${state.previewRecords.length} matching titles calculated.`);
+  showStatus(`${uniqueTitleCount(state.previewRecords)} matching titles calculated.`);
 }
 
 function resetApplication() {

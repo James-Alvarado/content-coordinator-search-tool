@@ -14,6 +14,10 @@ CatalogLens starts with the bundled Netflix Movies and TV Shows dataset from
 Kaggle and processes CSV data locally in the browser. It does not send uploaded
 catalogs to a backend or external service.
 
+After parsing, CatalogLens applies conservative in-browser cleaning before
+reports are calculated. Original field values remain available on each record,
+missing values are not invented, and the bundled CSV is never rewritten.
+
 ## Approved User Flow
 
 ```text
@@ -45,7 +49,7 @@ field such as genre, country, type, or rating.
 
 ### Catalog Comparison
 
-Compares record counts across two equivalent periods created by one comparison
+Compares title counts across two equivalent periods created by one comparison
 preset, such as latest 30 days versus previous 30 days or current catalog
 quarter versus previous quarter. The application distinguishes record-count
 difference from percentage change and does not calculate percentage change when
@@ -134,13 +138,26 @@ content-coordinator-search-tool/
 ├── index.html
 ├── styles.css
 ├── script.js
+├── data-cleaning.js
 ├── data.js
 ├── public/
 │   └── data/
 │       └── netflix_titles.csv
+├── tests/
+│   └── verify-data-cleaning.js
 ├── sample-data.csv
 └── README.md
 ```
+
+## Verification
+
+Run the data-cleaning and report regression gate before deployment:
+
+```bash
+node tests/verify-data-cleaning.js
+```
+
+The command exits with a failure status if any required check does not pass.
 
 ## Privacy
 
@@ -168,7 +185,7 @@ The executive summary uses deterministic templates based only on calculated resu
 
 * CSV files are limited to 5 MB.
 * Dates must be recognizable by the browser’s standard date parser.
-* Multi-country and multi-genre cells are treated as one category unless the source CSV separates them into individual records.
+* Comma-separated countries and genres (`listed_in`) are trimmed and expanded into title-country-genre reporting rows. Country and genre metrics count each title once per individual value, while other title-level metrics still count each source title once.
 * Charts show the ten largest categories to remain readable; all matching records remain available in the table.
 
 ## Author
