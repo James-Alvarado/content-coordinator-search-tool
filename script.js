@@ -332,8 +332,20 @@ function renderDetectedFields(result, fileName) {
     tags.append(tag);
   });
   const summary = result.cleaningSummary;
-  document.querySelector("#import-details").textContent =
-    `${fileName} · ${summary.totalRecordsProcessed} titles · ${summary.whitespaceValuesTrimmed} whitespace values trimmed · ${summary.datesSuccessfullyParsed} dates parsed · ${summary.datesLeftMissingOrInvalid} dates missing or invalid · ${summary.suspiciousRatingDurationRecordsCorrected} rating/duration corrections`;
+  const details = document.querySelector("#import-details");
+  details.replaceChildren();
+  [
+    fileName,
+    `${summary.totalRecordsProcessed} titles`,
+    `${summary.whitespaceValuesTrimmed} whitespace values trimmed`,
+    `${summary.datesSuccessfullyParsed} dates parsed`,
+    `${summary.datesLeftMissingOrInvalid} dates missing or invalid`,
+    `${summary.suspiciousRatingDurationRecordsCorrected} rating/duration corrections`
+  ].forEach(function (value) {
+    const item = document.createElement("span");
+    item.textContent = value;
+    details.append(item);
+  });
   container.hidden = false;
 }
 

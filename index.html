@@ -56,10 +56,6 @@
           <li class="workflow-item" data-step="4"><span>4</span><div><strong>Preview</strong><small>Verify calculated results</small></div></li>
           <li class="workflow-item" data-step="5"><span>5</span><div><strong>Executive report</strong><small>Review data-grounded findings</small></div></li>
         </ol>
-        <div class="privacy-card">
-          <strong>Local processing</strong>
-          <p>Your CSV stays in this browser and is not uploaded to a service.</p>
-        </div>
       </aside>
 
       <main id="main-content" class="main-content">
@@ -96,10 +92,15 @@
             <div class="detected-fields" id="detected-fields" hidden>
               <h2>Fields detected</h2>
               <div class="field-tags" id="field-tags"></div>
-              <p id="import-details"></p>
+              <h3>Cleaning summary</h3>
+              <div class="import-details" id="import-details"></div>
             </div>
             <a class="sample-download-link" href="sample-data.csv" download>Download Fictional Sample CSV</a>
           </div>
+          <aside class="local-processing-notice" aria-label="Local processing notice">
+            <span aria-hidden="true">◆</span>
+            <p><strong>Local processing</strong> — Your CSV stays in this browser and is not uploaded to a server.</p>
+          </aside>
         </section>
 
         <section class="screen" id="report-type-screen" aria-labelledby="report-type-heading" hidden>
