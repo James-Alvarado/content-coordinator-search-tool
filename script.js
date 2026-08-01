@@ -61,7 +61,7 @@ const introScreen = document.querySelector("#intro-screen");
 const introGetStarted = document.querySelector("#intro-get-started");
 const introSkip = document.querySelector("#intro-skip");
 const appRegions = [document.querySelector(".topbar"), document.querySelector(".app-shell")];
-const introTransitionDuration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 480;
+const introTransitionDuration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700;
 let introTimer;
 let introClosing = false;
 
@@ -94,6 +94,7 @@ function closeIntro() {
   introClosing = true;
   window.clearTimeout(introTimer);
   rememberIntro();
+  document.body.classList.add("workspace-entering");
   introScreen.classList.add("is-leaving");
   document.body.classList.remove("intro-active");
 
@@ -101,6 +102,7 @@ function closeIntro() {
     introScreen.hidden = true;
     introScreen.setAttribute("aria-hidden", "true");
     setApplicationInert(false);
+    document.body.classList.remove("workspace-entering");
     browseFileButton.focus({ preventScroll: true });
   }, introTransitionDuration);
 }
@@ -117,7 +119,7 @@ function initializeIntro() {
   window.setTimeout(function () {
     introGetStarted.focus({ preventScroll: true });
   }, 0);
-  introTimer = window.setTimeout(closeIntro, 4000);
+  introTimer = window.setTimeout(closeIntro, 3000);
 }
 
 introGetStarted.addEventListener("click", closeIntro);
