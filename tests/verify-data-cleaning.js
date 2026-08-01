@@ -464,6 +464,30 @@ function run() {
     assert.equal(elements.get("#preview-table-toggle").hidden, true);
   });
 
+  check("17. Workflow actions use one compact top placement per screen", function () {
+    const html = fs.readFileSync(path.join(projectRoot, "index.html"), "utf8");
+    const screenIds = ["upload-screen", "report-type-screen", "configure-screen", "preview-screen"];
+    screenIds.forEach(function (screenId, index) {
+      const start = html.indexOf(`id="${screenId}"`);
+      const nextId = screenIds[index + 1] || "executive-screen";
+      const end = html.indexOf(`id="${nextId}"`);
+      const screenHtml = html.slice(start, end);
+      assert.equal((screenHtml.match(/class="screen-actions workflow-actions"/g) || []).length, 1);
+      assert(screenHtml.indexOf('class="screen-actions workflow-actions"') < screenHtml.indexOf(index === 0 ? 'class="panel upload-panel"' : index === 1 ? 'id="report-type-grid"' : index === 2 ? 'id="configuration-form"' : 'id="preview-kpis"'));
+    });
+    const previewStart = html.indexOf('id="preview-screen"');
+    const previewEnd = html.indexOf('id="executive-screen"');
+    const previewHtml = html.slice(previewStart, previewEnd);
+    assert.equal((previewHtml.match(/id="generate-report-button"/g) || []).length, 1);
+    assert.equal((previewHtml.match(/>Back to Filters</g) || []).length, 1);
+    assert.equal((html.match(/id="upload-continue-button"/g) || []).length, 1);
+    assert.equal((html.match(/id="report-type-continue-button"/g) || []).length, 1);
+    assert.equal((html.match(/id="clear-configuration-button"/g) || []).length, 1);
+    assert.equal((html.match(/id="generate-report-button"/g) || []).length, 1);
+    assert(html.includes('type="reset" form="configuration-form"'));
+    assert(html.includes('type="submit" form="configuration-form"'));
+  });
+
   console.log("CatalogLens data-cleaning deployment gate");
   console.table(checks);
   console.log("Row count:", {

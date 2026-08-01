@@ -69,6 +69,12 @@
             <p>The Netflix catalog loads automatically. Upload a compatible CSV at any time to replace it for this session.</p>
           </header>
 
+          <div class="screen-actions workflow-actions">
+            <a class="button button-secondary" href="sample-data.csv" download>Download Fictional Sample CSV</a>
+            <!-- Continue remains disabled until the default or an uploaded CSV validates successfully. -->
+            <button class="button button-primary" id="upload-continue-button" type="button" disabled>Continue</button>
+          </div>
+
           <div class="panel upload-panel">
             <!-- The zone receives dropped files; the real button below provides keyboard file access. -->
             <div class="drop-zone" id="drop-zone">
@@ -91,11 +97,6 @@
               <p id="import-details"></p>
             </div>
 
-            <div class="screen-actions">
-              <a class="button button-secondary" href="sample-data.csv" download>Download Fictional Sample CSV</a>
-              <!-- Continue remains disabled until the default or an uploaded CSV validates successfully. -->
-              <button class="button button-primary" id="upload-continue-button" type="button" disabled>Continue</button>
-            </div>
           </div>
         </section>
 
@@ -105,11 +106,11 @@
             <h1 id="report-type-heading">Choose Report Type</h1>
             <p>Select the recurring business question you want CatalogLens to calculate.</p>
           </header>
-          <div class="report-type-grid" id="report-type-grid"></div>
-          <div class="screen-actions">
+          <div class="screen-actions workflow-actions">
             <button class="button button-secondary" data-go-screen="upload" type="button">Back</button>
             <button class="button button-primary" id="report-type-continue-button" type="button" disabled>Continue</button>
           </div>
+          <div class="report-type-grid" id="report-type-grid"></div>
         </section>
 
         <section class="screen" id="configure-screen" aria-labelledby="configure-heading" hidden>
@@ -118,6 +119,11 @@
             <h1 id="configure-heading">Configure Report</h1>
             <p id="configure-description"></p>
           </header>
+          <div class="screen-actions workflow-actions">
+            <button class="button button-secondary" data-go-screen="report-type" type="button">Back</button>
+            <button class="button button-quiet" id="clear-configuration-button" type="reset" form="configuration-form">Clear Filters</button>
+            <button class="button button-primary" type="submit" form="configuration-form">Apply Filters</button>
+          </div>
           <form class="panel configuration-panel" id="configuration-form" novalidate>
             <div class="selected-report-banner">
               <span>Selected report</span>
@@ -125,11 +131,6 @@
             </div>
             <div class="configuration-grid" id="configuration-fields"></div>
             <div class="form-error" id="configuration-error" role="alert" hidden></div>
-            <div class="screen-actions">
-              <button class="button button-secondary" data-go-screen="report-type" type="button">Back</button>
-              <button class="button button-quiet" id="clear-configuration-button" type="reset">Clear Filters</button>
-              <button class="button button-primary" type="submit">Apply Filters</button>
-            </div>
           </form>
         </section>
 
@@ -142,6 +143,11 @@
             </div>
             <span class="report-pill" id="preview-report-type"></span>
           </header>
+
+          <div class="screen-actions workflow-actions">
+            <button class="button button-secondary" data-go-screen="configure" type="button">Back to Filters</button>
+            <button class="button button-primary" id="generate-report-button" type="button">Generate Report</button>
+          </div>
 
           <div class="kpi-grid" id="preview-kpis"></div>
           <div class="chart-grid" id="preview-charts"></div>
@@ -163,14 +169,10 @@
             </div>
           </section>
 
-          <div class="screen-actions">
-            <button class="button button-secondary" data-go-screen="configure" type="button">Back to Filters</button>
-            <button class="button button-primary" id="generate-report-button" type="button">Generate Report</button>
-          </div>
         </section>
 
         <div class="screen" id="executive-screen" hidden>
-          <div class="report-toolbar">
+          <div class="report-toolbar workflow-actions">
             <button class="button button-secondary" data-go-screen="preview" type="button">Back to Preview</button>
           </div>
           <article class="executive-report">

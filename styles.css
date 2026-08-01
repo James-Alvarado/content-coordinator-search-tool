@@ -242,6 +242,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   gap: 10px;
   margin-top: 24px;
 }
+.screen-actions.workflow-actions, .report-toolbar.workflow-actions { margin: -8px 0 20px; }
 
 .report-type-grid {
   display: grid;
