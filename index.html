@@ -79,6 +79,11 @@
           </div>
 
           <div class="panel upload-panel">
+            <div class="upload-message" id="upload-message">
+              <strong>Loading default catalog</strong>
+              <span>Preparing the Netflix Movies and TV Shows dataset…</span>
+            </div>
+
             <!-- The zone receives dropped files; the real button below provides keyboard file access. -->
             <div class="drop-zone" id="drop-zone">
               <div class="upload-symbol" aria-hidden="true">↑</div>
@@ -87,11 +92,6 @@
               <span class="file-hint">CSV · Maximum 5 MB</span>
               <button class="button button-secondary browse-button" id="browse-file-button" type="button">Browse CSV</button>
               <input class="visually-hidden" id="catalog-file" type="file" accept=".csv,text/csv">
-            </div>
-
-            <div class="upload-message" id="upload-message">
-              <strong>Loading default catalog</strong>
-              <span>Preparing the Netflix Movies and TV Shows dataset…</span>
             </div>
 
             <div class="detected-fields" id="detected-fields" hidden>

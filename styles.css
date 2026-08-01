@@ -202,6 +202,7 @@ button { touch-action: manipulation; }
   background: #f2f2f5;
 }
 .upload-message span { color: var(--muted); }
+.upload-panel > .upload-message { margin: 0 0 20px; }
 .upload-message.is-success { border-color: var(--success); background: var(--success-bg); }
 .upload-message.is-error, .form-error { border-color: var(--error); background: var(--error-bg); color: var(--error); }
 .upload-message.is-loading { border-color: #8d6500; background: #fff7df; }
