@@ -209,9 +209,6 @@ button { touch-action: manipulation; }
 .upload-message.is-error, .form-error { color: var(--error); }
 .dataset-status-card.is-success .dataset-status-icon { color: var(--success); }
 .dataset-status-card.is-error .dataset-status-icon { color: var(--error); }
-.sample-download-link { display: inline-block; margin-top: 20px; color: var(--muted); font-size: 0.78rem; font-weight: 750; text-underline-offset: 4px; }
-.sample-download-link:hover { color: var(--purple-700); }
-
 .detected-fields { margin-top: 20px; }
 .detected-fields h2 { margin: 0 0 10px; font-size: 0.95rem; }
 .detected-fields h3 { margin: 20px 0 9px; color: var(--muted); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; }

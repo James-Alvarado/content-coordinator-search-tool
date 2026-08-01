@@ -84,15 +84,6 @@ Examples such as `Title`, `Release Year`, `releaseYear`, `Date Added`, and `date
 
 The title field is required. Optional missing information appears as **Not provided**. Invalid dates appear as **Unknown** and are excluded from date-range calculations.
 
-## CSV Example
-
-```csv
-title,type,country,genre,rating,release_year,date_added,description
-Example Title,Movie,Colombia,Drama,8.1,2024,2025-01-15,A fictional catalog description.
-```
-
-The repository includes [sample-data.csv](sample-data.csv), containing 200 clearly fictional records with varied dates, countries, genres, content types, ratings, and release years for local testing.
-
 ## Core Features
 
 * Bundled Netflix Movies and TV Shows dataset loaded automatically on startup
@@ -125,7 +116,7 @@ No framework, package manager, backend, database, external API, chart dependency
 1. Open the project folder in Cursor, VS Code, or another editor.
 2. Start Live Server and open `index.html`.
 3. Wait for the bundled Netflix catalog to load automatically.
-4. Optionally upload `sample-data.csv` or another compatible CSV to replace it for the session.
+4. Optionally upload a compatible CSV to replace it for the session.
 5. Select a report type.
 6. Complete the relevant settings.
 7. Preview the calculations.
@@ -145,7 +136,6 @@ content-coordinator-search-tool/
 │       └── netflix_titles.csv
 ├── tests/
 │   └── verify-data-cleaning.js
-├── sample-data.csv
 └── README.md
 ```
 

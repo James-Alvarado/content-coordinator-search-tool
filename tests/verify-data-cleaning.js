@@ -376,12 +376,13 @@ function run() {
   });
 
   check("11. Compatible custom CSV upload format still parses", function () {
-    const sample = app.parseCatalogCsv(
-      fs.readFileSync(path.join(projectRoot, "sample-data.csv"), "utf8")
-    );
-    assert.equal(sample.records.length, 200);
-    assert.equal(sample.cleaningSummary.datesSuccessfullyParsed, 200);
-    assert.equal(sample.cleaningSummary.suspiciousRatingDurationRecordsCorrected, 0);
+    const customCatalog = app.parseCatalogCsv([
+      "title,type,country,genre,rating,release_year,date_added,description",
+      "Catalog Test Title,Movie,Canada,Drama,PG,2024,2025-01-15,Upload validation record"
+    ].join("\n"));
+    assert.equal(customCatalog.records.length, 1);
+    assert.equal(customCatalog.cleaningSummary.datesSuccessfullyParsed, 1);
+    assert.equal(customCatalog.cleaningSummary.suspiciousRatingDurationRecordsCorrected, 0);
   });
 
   check("12. Previously clean data remains unchanged", function () {
