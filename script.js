@@ -311,15 +311,15 @@ function parseCatalogCsv(csvText) {
   };
 }
 
-function renderUploadMessage(type, heading, detail) {
+function renderUploadMessage(type, heading, status, detail) {
   const message = document.querySelector("#upload-message");
   message.className = `upload-message is-${type}`;
-  message.replaceChildren();
-  const strong = document.createElement("strong");
-  strong.textContent = heading;
-  const span = document.createElement("span");
-  span.textContent = detail;
-  message.append(strong, span);
+  dropZone.classList.remove("is-success", "is-loading", "is-error");
+  dropZone.classList.add(`is-${type}`);
+  document.querySelector("#dataset-name").textContent = heading;
+  document.querySelector("#dataset-status-badge").textContent = status;
+  document.querySelector("#dataset-status-detail").textContent = detail;
+  document.querySelector("#dataset-status-icon").textContent = type === "success" ? "✓" : type === "error" ? "!" : "…";
 }
 
 function renderDetectedFields(result, fileName) {
@@ -352,15 +352,14 @@ function setDataset(result, source) {
   uploadContinueButton.disabled = false;
   startOverButton.hidden = false;
 
-  const sourceLabel = source === "default"
-    ? "Netflix Movies and TV Shows dataset (Kaggle)"
-    : "Custom dataset";
-  renderUploadMessage("success", `Loaded: ${sourceLabel}`, `${result.cleaningSummary.totalRecordsProcessed} titles are ready.`);
-  showStatus(`Loaded: ${sourceLabel}. ${result.cleaningSummary.totalRecordsProcessed} titles are ready.`);
+  const sourceLabel = source === "default" ? "Netflix Movies and TV Shows" : "Custom dataset";
+  const availableTitleCount = result.records.length;
+  renderUploadMessage("success", sourceLabel, "Loaded", `${availableTitleCount.toLocaleString()} titles available`);
+  showStatus(`Loaded: ${sourceLabel}. ${availableTitleCount} titles are ready.`);
 }
 
 async function loadDefaultDataset() {
-  renderUploadMessage("loading", "Loading default catalog", "Preparing the Netflix Movies and TV Shows dataset…");
+  renderUploadMessage("loading", "Netflix Movies and TV Shows", "Loading", "Preparing the dataset…");
   try {
     const response = await fetch("public/data/netflix_titles.csv");
     if (!response.ok) throw new Error(`The default dataset request failed (${response.status}).`);
@@ -369,7 +368,7 @@ async function loadDefaultDataset() {
   } catch (error) {
     uploadContinueButton.disabled = true;
     document.querySelector("#detected-fields").hidden = true;
-    renderUploadMessage("error", "Default catalog could not be loaded", "You can still upload a compatible CSV below.");
+    renderUploadMessage("error", "Netflix Movies and TV Shows", "Not loaded", "You can still upload a compatible CSV.");
     showStatus(`Default dataset error: ${error.message}`);
   }
 }
@@ -377,19 +376,19 @@ async function loadDefaultDataset() {
 async function processFile(file) {
   if (!file) return;
   if (!file.name.toLowerCase().endsWith(".csv")) {
-    renderUploadMessage("error", "Unsupported file", "Choose a CSV file.");
+    renderUploadMessage("error", "Unsupported file", "Not loaded", "Choose a CSV file.");
     return;
   }
   if (file.size === 0) {
-    renderUploadMessage("error", "Empty file", "The selected CSV contains no data.");
+    renderUploadMessage("error", "Empty file", "Not loaded", "The selected CSV contains no data.");
     return;
   }
   if (file.size > 5 * 1024 * 1024) {
-    renderUploadMessage("error", "File is too large", "Choose a CSV smaller than 5 MB for this MVP.");
+    renderUploadMessage("error", "File is too large", "Not loaded", "Choose a CSV smaller than 5 MB for this MVP.");
     return;
   }
 
-  renderUploadMessage("loading", "Reading catalog", `Validating ${file.name}…`);
+  renderUploadMessage("loading", file.name, "Validating", "Checking the replacement dataset…");
   try {
     const result = parseCatalogCsv(await file.text());
     setDataset(result, "custom");
@@ -397,7 +396,7 @@ async function processFile(file) {
     state.catalog = [];
     uploadContinueButton.disabled = true;
     document.querySelector("#detected-fields").hidden = true;
-    renderUploadMessage("error", "Catalog could not be imported", error.message);
+    renderUploadMessage("error", "Catalog could not be imported", "Not loaded", error.message);
     showStatus(`Upload error: ${error.message}`);
   }
 }

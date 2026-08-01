@@ -172,26 +172,40 @@ button { touch-action: manipulation; }
 .upload-panel, .configuration-panel, .executive-report { padding: clamp(20px, 4vw, 34px); }
 
 .drop-zone {
-  display: flex;
-  min-height: 290px;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  border: 2px dashed #bab3d7;
+  gap: 18px;
+  border: 1px solid #bab3d7;
   border-radius: 11px;
-  padding: 28px;
+  padding: 22px;
   background: var(--purple-50);
-  text-align: center;
-  cursor: pointer;
+  text-align: left;
 }
-.drop-zone:hover, .drop-zone.is-dragging { border-color: var(--purple-600); background: #f1edff; }
-.drop-zone h2 { margin: 8px 0 5px; font-size: 1.15rem; }
+.drop-zone.is-dragging { border-color: var(--purple-600); background: #f1edff; }
+.drop-zone h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .drop-zone p { margin: 0; color: var(--muted); }
-.upload-symbol { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 50%; background: var(--purple-100); color: var(--purple-700); font-size: 1.8rem; font-weight: 850; }
-.file-hint { margin-top: 14px; color: var(--purple-700); font-size: 0.75rem; font-weight: 750; }
-.browse-button { margin-top: 14px; }
-
-.upload-message, .form-error {
+.dataset-status-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--purple-100);
+  color: var(--purple-700);
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+.upload-message {
+  min-width: 0;
+}
+.dataset-status-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.dataset-status-badge { border-radius: 999px; padding: 3px 9px; background: var(--purple-100); color: var(--purple-700); font-size: 0.72rem; }
+.upload-message.is-success .dataset-status-badge { background: var(--success-bg); color: var(--success); }
+.upload-message.is-error .dataset-status-badge { background: var(--error-bg); color: var(--error); }
+.upload-message small { display: block; margin-top: 8px; color: var(--muted); }
+.form-error {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -202,10 +216,11 @@ button { touch-action: manipulation; }
   background: #f2f2f5;
 }
 .upload-message span { color: var(--muted); }
-.upload-panel > .upload-message { margin: 0 0 20px; }
-.upload-message.is-success { border-color: var(--success); background: var(--success-bg); }
-.upload-message.is-error, .form-error { border-color: var(--error); background: var(--error-bg); color: var(--error); }
-.upload-message.is-loading { border-color: #8d6500; background: #fff7df; }
+.upload-message.is-error, .form-error { color: var(--error); }
+.dataset-status-card.is-success .dataset-status-icon { color: var(--success); }
+.dataset-status-card.is-error .dataset-status-icon { color: var(--error); }
+.sample-download-link { display: inline-block; margin-top: 20px; color: var(--muted); font-size: 0.78rem; font-weight: 750; text-underline-offset: 4px; }
+.sample-download-link:hover { color: var(--purple-700); }
 
 .detected-fields { margin-top: 20px; }
 .detected-fields h2 { margin: 0 0 10px; font-size: 0.95rem; }
@@ -737,26 +752,20 @@ body.workspace-entering .main-content { animation: workspace-content-in 700ms cu
 }
 .upload-panel, .configuration-panel { padding: clamp(26px, 4vw, 48px); }
 .drop-zone {
-  min-height: 330px;
+  min-height: 0;
   border-color: rgba(160, 131, 244, 0.35);
   border-radius: 20px;
   background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15), transparent 60%), rgba(255, 255, 255, 0.018);
 }
-.drop-zone:hover, .drop-zone.is-dragging { border-color: #a98bff; background: rgba(139, 92, 246, 0.1); }
+.drop-zone.is-dragging { border-color: #a98bff; background: rgba(139, 92, 246, 0.1); }
 .drop-zone h2 { font-size: 1.35rem; }
 .drop-zone p, .upload-message span, .detected-fields p { color: var(--muted); }
-.upload-symbol {
-  width: 62px;
-  height: 62px;
+.dataset-status-icon {
   background: linear-gradient(145deg, rgba(166, 130, 255, 0.24), rgba(88, 64, 160, 0.18));
   box-shadow: inset 0 0 0 1px rgba(183, 155, 255, 0.2);
 }
-.file-hint { color: #ae92ff; }
-
-.upload-message, .form-error { border-radius: 12px; background: rgba(255, 255, 255, 0.035); }
-.upload-message.is-success { background: var(--success-bg); }
-.upload-message.is-error, .form-error { background: var(--error-bg); }
-.upload-message.is-loading { border-color: #d7ad59; background: rgba(202, 149, 44, 0.11); }
+.form-error { border-radius: 12px; background: rgba(255, 255, 255, 0.035); }
+.form-error { background: var(--error-bg); }
 .field-tags span, .report-pill { background: rgba(139, 92, 246, 0.15); color: #c4b1ff; }
 
 .button {
@@ -976,13 +985,11 @@ tbody tr:hover { background: rgba(139, 92, 246, 0.07); }
   box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 :root[data-theme="light"] .drop-zone { border-color: rgba(105, 67, 197, 0.27); background: radial-gradient(circle at 50% 0%, rgba(118, 80, 220, 0.09), transparent 60%), rgba(255, 255, 255, 0.36); }
-:root[data-theme="light"] .drop-zone:hover,
 :root[data-theme="light"] .drop-zone.is-dragging { border-color: #7650dc; background: rgba(118, 80, 220, 0.07); }
 :root[data-theme="light"] .drop-zone p,
 :root[data-theme="light"] .upload-message span,
 :root[data-theme="light"] .detected-fields p { color: var(--muted); }
-:root[data-theme="light"] .upload-symbol { background: linear-gradient(145deg, rgba(118, 80, 220, 0.14), rgba(86, 56, 160, 0.08)); }
-:root[data-theme="light"] .upload-message { background: rgba(49, 38, 75, 0.035); }
+:root[data-theme="light"] .dataset-status-icon { box-shadow: inset 0 0 0 1px rgba(105, 67, 197, 0.14); }
 
 :root[data-theme="light"] .button-secondary { border-color: rgba(49, 38, 75, 0.13); background: rgba(255, 255, 255, 0.64); color: #2b2535; }
 :root[data-theme="light"] .button-secondary:hover,
@@ -1108,7 +1115,7 @@ tbody tr:hover { background: rgba(139, 92, 246, 0.07); }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .panel, .chart-card, .executive-visual { max-width: 100%; }
   .upload-panel, .configuration-panel { padding: 17px; }
-  .drop-zone { min-height: 230px; padding: 20px 14px; }
+  .drop-zone { min-height: 0; padding: 18px 14px; }
   .selected-report-banner { align-items: flex-start; flex-direction: column; gap: 5px; margin-bottom: 18px; overflow-wrap: anywhere; }
 
   /* Mobile browsers control the opened select menu, but a 16px base size,

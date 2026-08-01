@@ -73,25 +73,24 @@
           </header>
 
           <div class="screen-actions workflow-actions">
-            <a class="button button-secondary" href="sample-data.csv" download>Download Fictional Sample CSV</a>
+            <button class="button button-secondary" id="browse-file-button" type="button">Upload your own CSV</button>
             <!-- Continue remains disabled until the default or an uploaded CSV validates successfully. -->
             <button class="button button-primary" id="upload-continue-button" type="button" disabled>Continue</button>
           </div>
+          <input class="visually-hidden" id="catalog-file" type="file" accept=".csv,text/csv" aria-label="Upload your own CSV catalog">
 
           <div class="panel upload-panel">
-            <div class="upload-message" id="upload-message">
-              <strong>Loading default catalog</strong>
-              <span>Preparing the Netflix Movies and TV Shows dataset…</span>
-            </div>
-
-            <!-- The zone receives dropped files; the real button below provides keyboard file access. -->
-            <div class="drop-zone" id="drop-zone">
-              <div class="upload-symbol" aria-hidden="true">↑</div>
-              <h2>Drag and drop your CSV here</h2>
-              <p>or use the file picker</p>
-              <span class="file-hint">CSV · Maximum 5 MB</span>
-              <button class="button button-secondary browse-button" id="browse-file-button" type="button">Browse CSV</button>
-              <input class="visually-hidden" id="catalog-file" type="file" accept=".csv,text/csv">
+            <!-- The compact status card remains the drop target for replacement CSV files. -->
+            <div class="dataset-status-card drop-zone" id="drop-zone">
+              <span class="dataset-status-icon" id="dataset-status-icon" aria-hidden="true">…</span>
+              <div class="upload-message is-loading" id="upload-message" role="status" aria-live="polite" aria-atomic="true">
+                <h2 id="dataset-name">Netflix Movies and TV Shows</h2>
+                <div class="dataset-status-meta">
+                  <strong class="dataset-status-badge" id="dataset-status-badge">Loading</strong>
+                  <span id="dataset-status-detail">Preparing the dataset…</span>
+                </div>
+                <small>Drop a compatible CSV here to replace this dataset.</small>
+              </div>
             </div>
 
             <div class="detected-fields" id="detected-fields" hidden>
@@ -99,7 +98,7 @@
               <div class="field-tags" id="field-tags"></div>
               <p id="import-details"></p>
             </div>
-
+            <a class="sample-download-link" href="sample-data.csv" download>Download Fictional Sample CSV</a>
           </div>
         </section>
 
