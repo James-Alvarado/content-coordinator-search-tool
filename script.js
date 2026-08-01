@@ -329,7 +329,7 @@ function renderDetectedFields(result, fileName) {
   });
   const summary = result.cleaningSummary;
   document.querySelector("#import-details").textContent =
-    `${fileName} · ${summary.totalRecordsProcessed} titles · ${summary.reportingRowsCreated} country-genre rows · ${summary.whitespaceValuesTrimmed} whitespace values trimmed · ${summary.datesSuccessfullyParsed} dates parsed · ${summary.datesLeftMissingOrInvalid} dates missing or invalid · ${summary.suspiciousRatingDurationRecordsCorrected} rating/duration corrections`;
+    `${fileName} · ${summary.totalRecordsProcessed} titles · ${summary.whitespaceValuesTrimmed} whitespace values trimmed · ${summary.datesSuccessfullyParsed} dates parsed · ${summary.datesLeftMissingOrInvalid} dates missing or invalid · ${summary.suspiciousRatingDurationRecordsCorrected} rating/duration corrections`;
   container.hidden = false;
 }
 
@@ -350,7 +350,7 @@ function setDataset(result, source) {
   const sourceLabel = source === "default"
     ? "Netflix Movies and TV Shows dataset (Kaggle)"
     : "Custom dataset";
-  renderUploadMessage("success", `Loaded: ${sourceLabel}`, `${result.cleaningSummary.totalRecordsProcessed} titles are ready across ${result.records.length} country-genre records.`);
+  renderUploadMessage("success", `Loaded: ${sourceLabel}`, `${result.cleaningSummary.totalRecordsProcessed} titles are ready.`);
   showStatus(`Loaded: ${sourceLabel}. ${result.cleaningSummary.totalRecordsProcessed} titles are ready.`);
 }
 
@@ -446,9 +446,11 @@ function renderReportTypes() {
 }
 
 function uniqueValues(field) {
+  const values = field === "country" || field === "genre"
+    ? categoryAssignments(state.catalog, field).map(function (record) { return record[field]; })
+    : state.catalog.map(function (record) { return record[field]; });
   return [...new Set(
-    state.catalog.map(function (record) { return record[field]; })
-      .filter(function (value) { return value !== null && String(value).trim() !== ""; })
+    values.filter(function (value) { return value !== null && String(value).trim() !== ""; })
   )].sort(function (a, b) {
     return String(a).localeCompare(String(b), undefined, { numeric: true });
   });
@@ -752,11 +754,17 @@ function validateConfiguration(filters) {
 }
 
 function recordMatchesFilters(record, filters) {
-  const equalityFields = ["type", "country", "genre", "rating"];
+  const equalityFields = ["type", "rating"];
   const matchesSelections = equalityFields.every(function (field) {
     return !filters[field] || normalizeText(record[field]) === normalizeText(filters[field]);
   });
   if (!matchesSelections) return false;
+  const matchesCategories = ["country", "genre"].every(function (field) {
+    return !filters[field] || splitCategoryValues(record[field]).some(function (value) {
+      return normalizeText(value) === normalizeText(filters[field]);
+    });
+  });
+  if (!matchesCategories) return false;
   if (filters.dateFrom && (!record.dateAdded || record.dateAdded < new Date(filters.dateFrom))) return false;
   if (filters.dateTo) {
     const end = new Date(filters.dateTo);
@@ -784,7 +792,9 @@ function recordsInPeriod(records, startValue, endValue) {
 }
 
 function groupRecords(records, field) {
-  const recordsToGroup = recordsForGrouping(records, field);
+  const recordsToGroup = field === "country" || field === "genre"
+    ? categoryAssignments(records, field)
+    : uniqueTitleRecords(records);
   return recordsToGroup.reduce(function (groups, record) {
     const label = displayValue(record[field]);
     if (!groups[label]) groups[label] = [];
@@ -793,15 +803,22 @@ function groupRecords(records, field) {
   }, {});
 }
 
-function recordsForGrouping(records, field) {
-  const keyForRecord = field === "country"
-    ? function (record) { return `${record.sourceRecordId ?? record.id}:${record.country}`; }
-    : field === "genre"
-      ? function (record) { return `${record.sourceRecordId ?? record.id}:${record.genre}`; }
-      : function (record) { return record.sourceRecordId ?? record.showId ?? record.id; };
-  return [...new Map(records.map(function (record) {
-    return [keyForRecord(record), record];
-  })).values()];
+function splitCategoryValues(value) {
+  const values = String(value ?? "").split(",").map(function (item) {
+    return item.trim();
+  }).filter(Boolean);
+  return values.length ? [...new Set(values)] : ["Unknown"];
+}
+
+function categoryAssignments(records, field) {
+  return records.flatMap(function (record) {
+    return splitCategoryValues(record[field]).map(function (value) {
+      return {
+        showId: record.showId,
+        [field]: value
+      };
+    });
+  });
 }
 
 function uniqueTitleRecords(records) {
@@ -859,16 +876,22 @@ function preparePreview() {
 
 function topCategory(records, field) {
   const categories = countCategories(records, field).filter(function (category) {
-    return category.label !== "Not provided";
+    return category.label !== "Not provided" && category.label !== "Unknown";
   });
   return categories[0] || null;
 }
 
 function calculateKpis(records) {
+  const countries = countCategories(records, "country").filter(function (category) {
+    return category.label !== "Unknown";
+  });
+  const genres = countCategories(records, "genre").filter(function (category) {
+    return category.label !== "Unknown";
+  });
   return {
     total: uniqueTitleCount(records),
-    countries: new Set(records.map(function (record) { return record.country; }).filter(Boolean)).size,
-    genres: new Set(records.map(function (record) { return record.genre; }).filter(Boolean)).size,
+    countries: countries.length,
+    genres: genres.length,
     topGenre: topCategory(records, "genre")?.label || "Not available",
     topType: topCategory(records, "type")?.label || "Not available"
   };
@@ -1221,9 +1244,7 @@ function renderTable() {
   const body = document.querySelector("#preview-table-body");
   body.replaceChildren();
   const titleCount = uniqueTitleCount(state.previewRecords);
-  document.querySelector("#matching-count").textContent = state.previewRecords.length === titleCount
-    ? `${titleCount} titles`
-    : `${titleCount} titles · ${state.previewRecords.length} country-genre records`;
+  document.querySelector("#matching-count").textContent = `${titleCount} titles`;
   const empty = state.previewRecords.length === 0;
   document.querySelector("#preview-empty").hidden = !empty;
   document.querySelector("#preview-table-scroll").hidden = empty;

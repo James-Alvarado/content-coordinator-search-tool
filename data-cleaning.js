@@ -67,14 +67,10 @@
       datesSuccessfullyParsed: 0,
       datesLeftMissingOrInvalid: 0,
       suspiciousRatingDurationRecordsCorrected: 0,
-      suspiciousRatingDurationRecordsFlagged: 0,
-      titlesWithMultipleCountries: 0,
-      countryRowsCreated: 0,
-      titlesWithMultipleGenres: 0,
-      reportingRowsCreated: 0
+      suspiciousRatingDurationRecordsFlagged: 0
     };
 
-    const records = sourceRecords.flatMap(function (sourceRecord) {
+    const records = sourceRecords.map(function (sourceRecord) {
       const raw = { ...sourceRecord.raw };
       const canonical = sourceRecord.canonical;
       const qualityFlags = [];
@@ -125,47 +121,25 @@
         summary.suspiciousRatingDurationRecordsFlagged += 1;
       }
 
-      const countries = trimText(canonical.country)
-        .split(",")
-        .map(trimText)
-        .filter(Boolean);
-      const countryRows = countries.length ? countries : [""];
-      if (countryRows.length > 1) summary.titlesWithMultipleCountries += 1;
-      summary.countryRowsCreated += countryRows.length;
-
-      const genres = trimText(canonical.genre)
-        .split(",")
-        .map(trimText)
-        .filter(Boolean);
-      const genreRows = genres.length ? genres : [""];
-      if (genreRows.length > 1) summary.titlesWithMultipleGenres += 1;
-      summary.reportingRowsCreated += countryRows.length * genreRows.length;
-
-      return countryRows.flatMap(function (country, countryIndex) {
-        return genreRows.map(function (genre, genreIndex) {
-          return {
-            id: `${sourceRecord.id}:${countryIndex + 1}:${genreIndex + 1}`,
-            sourceRecordId: sourceRecord.id,
-            countryIndex,
-            genreIndex,
-            showId: trimText(raw.show_id),
-            title: trimText(canonical.title),
-            type: trimText(canonical.type),
-            country,
-            genre,
-            rating,
-            releaseYear,
-            dateAdded,
-            dateAddedRaw: dateAddedText,
-            description: trimText(canonical.description),
-            director: trimText(raw.director),
-            cast: trimText(raw.cast),
-            duration,
-            raw,
-            dataQuality: [...qualityFlags]
-          };
-        });
-      });
+      return {
+        id: sourceRecord.id,
+        sourceRecordId: sourceRecord.id,
+        showId: trimText(raw.show_id),
+        title: trimText(canonical.title),
+        type: trimText(canonical.type),
+        country: trimText(canonical.country),
+        genre: trimText(canonical.genre),
+        rating,
+        releaseYear,
+        dateAdded,
+        dateAddedRaw: dateAddedText,
+        description: trimText(canonical.description),
+        director: trimText(raw.director),
+        cast: trimText(raw.cast),
+        duration,
+        raw,
+        dataQuality: qualityFlags
+      };
     });
 
     return { records, summary };

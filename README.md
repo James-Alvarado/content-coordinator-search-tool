@@ -185,7 +185,7 @@ The executive summary uses deterministic templates based only on calculated resu
 
 * CSV files are limited to 5 MB.
 * Dates must be recognizable by the browser’s standard date parser.
-* Comma-separated countries and genres (`listed_in`) are trimmed and expanded into title-country-genre reporting rows. Country and genre metrics count each title once per individual value, while other title-level metrics still count each source title once.
+* The cleaned catalog keeps one row per title. Country and genre metrics create separate, temporary assignment lists that split and trim only the category being counted, preventing a country × genre Cartesian product.
 * Charts show the ten largest categories to remain readable; all matching records remain available in the table.
 
 ## Author

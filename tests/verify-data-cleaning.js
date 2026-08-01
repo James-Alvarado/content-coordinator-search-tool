@@ -100,6 +100,8 @@ function createApplicationHarness() {
         filterRecords,
         calculateKpis,
         countCategories,
+        categoryAssignments,
+        splitCategoryValues,
         preparePreview,
         renderPreview,
         renderExecutiveReport,
@@ -227,13 +229,9 @@ function run() {
       return rating !== "Unknown" && !expectedRatings.has(rating);
     }))].sort();
 
-  check("1. 8,807 titles expand to the expected country-genre rows", function () {
+  check("1. The cleaned catalog keeps one row per title", function () {
     assert.equal(parsed.cleaningSummary.totalRecordsProcessed, 8807);
-    assert.equal(records.length, 23749);
-    assert.equal(parsed.cleaningSummary.countryRowsCreated, 10843);
-    assert.equal(parsed.cleaningSummary.titlesWithMultipleCountries, 1315);
-    assert.equal(parsed.cleaningSummary.titlesWithMultipleGenres, 6787);
-    assert.equal(parsed.cleaningSummary.reportingRowsCreated, 23749);
+    assert.equal(records.length, 8807);
   });
 
   check("2. Every source show_id is preserved", function () {
@@ -242,7 +240,7 @@ function run() {
     assert(records.every(function (record) {
       return record.showId === record.raw.show_id;
     }));
-    assert.equal(new Set(records.map(function (record) { return record.id; })).size, 23749);
+    assert.equal(new Set(records.map(function (record) { return record.id; })).size, 8807);
   });
 
   check("3. Original CSV hash is unchanged", function () {
@@ -255,18 +253,8 @@ function run() {
       assert.equal(record.showId, record.raw.show_id.trim());
       assert.equal(record.title, record.raw.title.trim());
       assert.equal(record.type, record.raw.type.trim());
-      const sourceCountries = record.raw.country.split(",").map(function (country) {
-        return country.trim();
-      }).filter(Boolean);
-      assert(sourceCountries.length === 0
-        ? record.country === ""
-        : sourceCountries.includes(record.country));
-      const sourceGenres = record.raw.listed_in.split(",").map(function (genre) {
-        return genre.trim();
-      }).filter(Boolean);
-      assert(sourceGenres.length === 0
-        ? record.genre === ""
-        : sourceGenres.includes(record.genre));
+      assert.equal(record.country, record.raw.country.trim());
+      assert.equal(record.genre, record.raw.listed_in.trim());
       assert.equal(record.description, record.raw.description.trim());
       assert.equal(record.director, record.raw.director.trim());
       assert.equal(record.cast, record.raw.cast.trim());
@@ -407,21 +395,19 @@ function run() {
     }).forEach(function (record) {
       assert.equal(record.title, record.raw.title);
       assert.equal(record.type, record.raw.type);
-      assert(record.raw.country.split(",").map(function (country) {
-        return country.trim();
-      }).filter(Boolean).includes(record.country) || record.country === "");
-      assert(record.raw.listed_in.split(",").map(function (genre) {
-        return genre.trim();
-      }).filter(Boolean).includes(record.genre) || record.genre === "");
+      assert.equal(record.country, record.raw.country);
+      assert.equal(record.genre, record.raw.listed_in);
       assert.equal(record.rating, record.raw.rating);
       assert.equal(record.duration, record.raw.duration);
     });
   });
 
   check("13. Country values are exploded and counted individually", function () {
-    assert(records.every(function (record) { return !record.country.includes(","); }));
+    const assignments = app.categoryAssignments(records, "country");
+    assert.equal(assignments.length, 10843);
+    assert(assignments.every(function (record) { return !record.country.includes(","); }));
     const countryCounts = Object.fromEntries(app.countCategories(records, "country")
-      .filter(function (category) { return category.label !== "Not provided"; })
+      .filter(function (category) { return category.label !== "Unknown"; })
       .map(function (category) { return [category.label, category.count]; }));
     assert.equal(Object.keys(countryCounts).length, 122);
     assert.equal(countryCounts["United States"], 3690);
@@ -430,14 +416,27 @@ function run() {
   });
 
   check("14. listed_in values are exploded and counted individually", function () {
-    assert(records.every(function (record) { return !record.genre.includes(","); }));
+    const assignments = app.categoryAssignments(records, "genre");
+    assert.equal(assignments.length, 19323);
+    assert(assignments.every(function (record) { return !record.genre.includes(","); }));
     const genreCounts = Object.fromEntries(app.countCategories(records, "genre")
-      .filter(function (category) { return category.label !== "Not provided"; })
+      .filter(function (category) { return category.label !== "Unknown"; })
       .map(function (category) { return [category.label, category.count]; }));
     assert.equal(Object.keys(genreCounts).length, 42);
     assert.equal(genreCounts["International Movies"], 2752);
     assert.equal(genreCounts.Dramas, 2427);
     assert.equal(genreCounts.Comedies, 1674);
+  });
+
+  check("15. Multi-country and multi-genre assignments do not form a Cartesian product", function () {
+    const title = records.find(function (record) { return record.showId === "s8"; });
+    assert(title);
+    assert.equal(app.splitCategoryValues(title.country).length, 6);
+    assert.equal(app.splitCategoryValues(title.genre).length, 3);
+    assert.equal(app.categoryAssignments([title], "country").length, 6);
+    assert.equal(app.categoryAssignments([title], "genre").length, 3);
+    assert.equal(records.filter(function (record) { return record.showId === "s8"; }).length, 1);
+    assert.equal(app.calculateKpis([title]).total, 1);
   });
 
   console.log("CatalogLens data-cleaning deployment gate");
@@ -447,6 +446,11 @@ function run() {
     afterCleaning: records.length
   });
   console.log("Type values and counts:", countValues(records, "type"));
+  console.log("Title and category-assignment totals:", {
+    uniqueTitles: new Set(records.map(function (record) { return record.showId; })).size,
+    countryAssignments: app.categoryAssignments(records, "country").length,
+    genreAssignments: app.categoryAssignments(records, "genre").length
+  });
   console.log("Top individual-country counts:", app.countCategories(records, "country").slice(0, 10));
   console.log("Top individual-genre counts:", app.countCategories(records, "genre").slice(0, 10));
   console.log("Unexpected ratings before cleaning:", unexpectedRatingsBefore);
