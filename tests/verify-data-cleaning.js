@@ -104,6 +104,7 @@ function createApplicationHarness() {
         splitCategoryValues,
         preparePreview,
         renderPreview,
+        renderTable,
         renderExecutiveReport,
         buildSummary,
         keyFindings
@@ -437,6 +438,30 @@ function run() {
     assert.equal(app.categoryAssignments([title], "genre").length, 3);
     assert.equal(records.filter(function (record) { return record.showId === "s8"; }).length, 1);
     assert.equal(app.calculateKpis([title]).total, 1);
+  });
+
+  check("16. Matching-title preview collapses to four rows without changing results", function () {
+    const originalPreview = records.slice(0, 10);
+    app.state.previewRecords = originalPreview;
+    app.state.showAllPreviewTitles = false;
+    app.renderTable();
+    assert.equal(elements.get("#preview-table-body").children.length, 4);
+    assert.equal(elements.get("#preview-table-toggle").hidden, false);
+    assert.equal(elements.get("#toggle-preview-titles").textContent, "Show all matching titles");
+    assert.equal(elements.get("#toggle-preview-titles").attributes["aria-expanded"], "false");
+
+    app.state.showAllPreviewTitles = true;
+    app.renderTable();
+    assert.equal(elements.get("#preview-table-body").children.length, 10);
+    assert.equal(elements.get("#toggle-preview-titles").textContent, "Show fewer titles");
+    assert.equal(elements.get("#toggle-preview-titles").attributes["aria-expanded"], "true");
+    assert.equal(app.state.previewRecords, originalPreview);
+
+    app.state.previewRecords = records.slice(0, 4);
+    app.state.showAllPreviewTitles = false;
+    app.renderTable();
+    assert.equal(elements.get("#preview-table-body").children.length, 4);
+    assert.equal(elements.get("#preview-table-toggle").hidden, true);
   });
 
   console.log("CatalogLens data-cleaning deployment gate");

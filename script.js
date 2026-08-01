@@ -7,7 +7,8 @@ const state = {
   filters: {},
   previewRecords: [],
   comparison: null,
-  generatedReport: false
+  generatedReport: false,
+  showAllPreviewTitles: false
 };
 
 const screens = {
@@ -29,6 +30,7 @@ const configurationForm = document.querySelector("#configuration-form");
 const configurationFields = document.querySelector("#configuration-fields");
 const configurationError = document.querySelector("#configuration-error");
 const generateReportButton = document.querySelector("#generate-report-button");
+const togglePreviewTitlesButton = document.querySelector("#toggle-preview-titles");
 const startOverButton = document.querySelector("#start-over-button");
 const themeToggle = document.querySelector("#theme-toggle");
 
@@ -343,6 +345,7 @@ function setDataset(result, source) {
   state.previewRecords = [];
   state.comparison = null;
   state.generatedReport = false;
+  state.showAllPreviewTitles = false;
   renderDetectedFields(result, source === "default" ? "netflix_titles.csv" : "Custom CSV");
   uploadContinueButton.disabled = false;
   startOverButton.hidden = false;
@@ -1248,9 +1251,18 @@ function renderTable() {
   const empty = state.previewRecords.length === 0;
   document.querySelector("#preview-empty").hidden = !empty;
   document.querySelector("#preview-table-scroll").hidden = empty;
+  const canExpand = state.previewRecords.length > 4;
+  document.querySelector("#preview-table-toggle").hidden = !canExpand;
+  togglePreviewTitlesButton.setAttribute("aria-expanded", String(canExpand && state.showAllPreviewTitles));
+  togglePreviewTitlesButton.textContent = state.showAllPreviewTitles
+    ? "Show fewer titles"
+    : "Show all matching titles";
   generateReportButton.disabled = empty;
 
-  state.previewRecords.forEach(function (record) {
+  const visibleRecords = state.showAllPreviewTitles
+    ? state.previewRecords
+    : state.previewRecords.slice(0, 4);
+  visibleRecords.forEach(function (record) {
     const row = document.createElement("tr");
     const columns = [
       { label: "Title", value: record.title },
@@ -1305,6 +1317,7 @@ function filterSummary() {
 }
 
 function renderPreview() {
+  state.showAllPreviewTitles = false;
   preparePreview();
   document.querySelector("#preview-report-type").textContent = selectedReport().name;
   document.querySelector("#preview-context").textContent = filterSummary();
@@ -1448,6 +1461,7 @@ function resetApplication() {
   state.previewRecords = [];
   state.comparison = null;
   state.generatedReport = false;
+  state.showAllPreviewTitles = false;
   fileInput.value = "";
   showScreen("upload");
   loadDefaultDataset();
@@ -1496,6 +1510,10 @@ configurationForm.addEventListener("reset", function () {
 generateReportButton.addEventListener("click", function () {
   renderExecutiveReport();
   showScreen("executive");
+});
+togglePreviewTitlesButton.addEventListener("click", function () {
+  state.showAllPreviewTitles = !state.showAllPreviewTitles;
+  renderTable();
 });
 startOverButton.addEventListener("click", resetApplication);
 themeToggle.addEventListener("click", function () {

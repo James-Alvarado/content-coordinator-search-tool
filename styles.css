@@ -302,6 +302,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .table-heading h2 { margin: 0; font-size: 1rem; }
 .table-heading strong { color: var(--purple-700); font-size: 0.8rem; }
 .table-scroll { overflow-x: auto; }
+.table-toggle { border-top: 1px solid var(--border); padding: 10px 19px 14px; text-align: center; }
+.table-toggle .button { min-height: 38px; }
 table { width: 100%; min-width: 900px; border-collapse: collapse; }
 th, td { border-bottom: 1px solid #eceaf1; padding: 12px 14px; text-align: left; vertical-align: top; }
 th { background: #faf9fc; color: var(--muted); font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; }
