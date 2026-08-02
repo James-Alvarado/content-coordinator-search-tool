@@ -63,5 +63,20 @@
     });
   }
 
-  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, smoothPath });
+  function bindDonutCenter(target, centerValue, centerLabel, total, item) {
+    function showCategory() {
+      centerValue.textContent = item.count;
+      centerLabel.textContent = item.label;
+    }
+    function showTotal() {
+      centerValue.textContent = total;
+      centerLabel.textContent = "titles";
+    }
+    target.addEventListener("pointerenter", showCategory);
+    target.addEventListener("pointerleave", showTotal);
+    target.addEventListener("focus", showCategory);
+    target.addEventListener("blur", showTotal);
+  }
+
+  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, bindDonutCenter, smoothPath });
 }());

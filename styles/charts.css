@@ -176,10 +176,37 @@
 .line-chart {
   color: var(--chart-label-color);
 }
+.donut-layout { grid-template-columns: 1fr; gap: 24px; min-height: 0; }
 
 .donut-chart {
+  position: relative;
+  width: min(260px, 100%);
+  aspect-ratio: 13 / 12;
   filter: none;
   transition: opacity var(--chart-transition-duration) var(--chart-transition-easing);
+}
+.donut-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.donut-track,
+.donut-segment { fill: none; }
+.donut-track { stroke: var(--chart-track-color); stroke-width: 26; }
+.donut-segment {
+  stroke-width: 26;
+  stroke-linecap: round;
+  cursor: pointer;
+  opacity: 0;
+  animation: donut-segment-enter 480ms var(--chart-transition-easing) forwards;
+  transition: opacity var(--chart-transition-duration) var(--chart-transition-easing), stroke-width var(--chart-transition-duration) var(--chart-transition-easing);
+}
+.donut-segment:hover,
+.donut-segment:focus-visible { stroke-width: 30; opacity: 0.94; outline: none; }
+.donut-outside-label {
+  fill: var(--chart-label-color);
+  font: 650 8px/1 var(--chart-font-family);
+  pointer-events: none;
+}
+@keyframes donut-segment-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .donut-chart:hover {
@@ -188,12 +215,17 @@
 }
 
 .donut-center {
+  position: absolute;
+  width: 42%;
+  aspect-ratio: 1;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
   background: var(--chart-inner-surface);
   box-shadow: inset 0 0 0 1px var(--chart-border-color);
 }
 
 .donut-center strong { color: var(--chart-title-color); font-variant-numeric: tabular-nums; }
-.donut-center span { color: var(--chart-label-color); }
+.donut-center span { max-width: 74px; overflow: hidden; color: var(--chart-label-color); text-overflow: ellipsis; white-space: nowrap; }
 .donut-legend { gap: 10px; }
 .donut-legend-item { color: var(--chart-label-color); font-size: var(--chart-label-size); }
 .donut-swatch { box-shadow: none; }
@@ -293,9 +325,12 @@
   .comparison-bars i,
   .vertical-bar-fill,
   .donut-chart,
+  .donut-segment,
   .line-point {
     transition: none;
   }
+
+  .donut-segment { animation: none; opacity: 1; }
 
   .chart-card:hover,
   .executive-visual:hover,

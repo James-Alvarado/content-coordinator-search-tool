@@ -1104,12 +1104,17 @@ function createDonutVisual(title, description, categories, total) {
   donut.className = "donut-chart";
   donut.setAttribute("role", "img");
   donut.setAttribute("aria-label", `${title}. ${parts.map(function (item) { return `${item.label}: ${item.count}`; }).join(", ")}`);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 260 240");
+  svg.setAttribute("aria-hidden", "true");
+  const track = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  track.setAttribute("class", "donut-track");
+  track.setAttribute("cx", "130");
+  track.setAttribute("cy", "120");
+  track.setAttribute("r", "70");
+  track.setAttribute("pathLength", "100");
+  svg.append(track);
   let currentPercentage = 0;
-  donut.style.background = `conic-gradient(${parts.map(function (item, index) {
-    const start = currentPercentage;
-    currentPercentage += calculatePercentage(item.count, total) || 0;
-    return `${executiveChartColors[index % executiveChartColors.length]} ${start}% ${currentPercentage}%`;
-  }).join(", ")})`;
   const center = document.createElement("div");
   center.className = "donut-center";
   const centerValue = document.createElement("strong");
@@ -1117,7 +1122,39 @@ function createDonutVisual(title, description, categories, total) {
   const centerLabel = document.createElement("span");
   centerLabel.textContent = "titles";
   center.append(centerValue, centerLabel);
-  donut.append(center);
+
+  parts.forEach(function (item, index) {
+    const percentage = calculatePercentage(item.count, total) || 0;
+    const segmentLength = Math.max(percentage - 1.15, 0.4);
+    const middleAngle = (currentPercentage + percentage / 2) * 3.6 - 90;
+    const radians = middleAngle * Math.PI / 180;
+    const segment = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    segment.setAttribute("class", "donut-segment");
+    segment.setAttribute("cx", "130");
+    segment.setAttribute("cy", "120");
+    segment.setAttribute("r", "70");
+    segment.setAttribute("pathLength", "100");
+    segment.setAttribute("transform", "rotate(-90 130 120)");
+    segment.setAttribute("stroke-dasharray", `${segmentLength} ${100 - segmentLength}`);
+    segment.setAttribute("stroke-dashoffset", String(-currentPercentage));
+    segment.style.stroke = executiveChartColors[index % executiveChartColors.length];
+    segment.style.animationDelay = `${index * 70}ms`;
+    window.CatalogLensChartPresentation.addTooltip(segment, `${item.label}: ${item.count} titles, ${percentage.toFixed(1)}%`);
+    window.CatalogLensChartPresentation.bindDonutCenter(segment, centerValue, centerLabel, total, item);
+    svg.append(segment);
+
+    const outsideLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const labelX = 130 + Math.cos(radians) * 103;
+    const labelY = 120 + Math.sin(radians) * 103;
+    outsideLabel.setAttribute("class", "donut-outside-label");
+    outsideLabel.setAttribute("x", labelX);
+    outsideLabel.setAttribute("y", labelY);
+    outsideLabel.setAttribute("text-anchor", Math.cos(radians) > 0.2 ? "start" : Math.cos(radians) < -0.2 ? "end" : "middle");
+    outsideLabel.textContent = item.label.length > 16 ? `${item.label.slice(0, 15)}…` : item.label;
+    svg.append(outsideLabel);
+    currentPercentage += percentage;
+  });
+  donut.append(svg, center);
 
   const legend = document.createElement("div");
   legend.className = "donut-legend";
