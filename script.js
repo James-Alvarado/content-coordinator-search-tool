@@ -937,7 +937,7 @@ function renderKpis(container, records) {
   );
 }
 
-function createBarChart(title, description, categories, valueFormatter) {
+function createBarChart(title, description, categories, valueFormatter, tooltipValues) {
   const card = document.createElement("section");
   card.className = "chart-card";
   const heading = document.createElement("h2");
@@ -947,10 +947,11 @@ function createBarChart(title, description, categories, valueFormatter) {
   const chart = document.createElement("div");
   chart.className = "bar-chart";
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
+  const total = categories.reduce(function (sum, item) { return sum + item.count; }, 0);
 
   categories.slice(0, 10).forEach(function (item) {
     const row = document.createElement("div");
-    row.className = "bar-row";
+    row.className = `bar-row${item.count === maximum ? " is-highest" : ""}`;
     const label = document.createElement("span");
     label.textContent = item.label;
     const track = document.createElement("div");
@@ -958,7 +959,13 @@ function createBarChart(title, description, categories, valueFormatter) {
     const fill = document.createElement("div");
     fill.className = "bar-fill";
     fill.style.width = `${(item.count / maximum) * 100}%`;
-    window.CatalogLensChartPresentation.addTooltip(fill, `${item.label}: ${valueFormatter ? valueFormatter(item) : item.count}`);
+    const tooltipData = tooltipValues
+      ? tooltipValues(item)
+      : { count: item.count, percentage: calculatePercentage(item.count, total) };
+    window.CatalogLensChartPresentation.addTooltip(
+      fill,
+      window.CatalogLensChartPresentation.barTooltip(item.label, tooltipData.count, tooltipData.percentage, description)
+    );
     track.append(fill);
     const value = document.createElement("strong");
     value.textContent = valueFormatter ? valueFormatter(item) : item.count;
@@ -1003,9 +1010,11 @@ function createComparisonChart() {
   const chart = document.createElement("div");
   chart.className = "comparison-chart";
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
+  const totalA = categories.reduce(function (sum, item) { return sum + item.countA; }, 0);
+  const totalB = categories.reduce(function (sum, item) { return sum + item.countB; }, 0);
   categories.slice(0, 10).forEach(function (item) {
     const row = document.createElement("div");
-    row.className = "comparison-row";
+    row.className = `comparison-row${item.count === maximum ? " is-highest" : ""}`;
     const label = document.createElement("span");
     label.textContent = item.label;
     const bars = document.createElement("div");
@@ -1013,11 +1022,17 @@ function createComparisonChart() {
     const barA = document.createElement("i");
     barA.className = "period-a";
     barA.style.width = `${(item.countA / maximum) * 100}%`;
-    window.CatalogLensChartPresentation.addTooltip(barA, `${item.label}, Period A: ${item.countA}`);
+    window.CatalogLensChartPresentation.addTooltip(
+      barA,
+      window.CatalogLensChartPresentation.barTooltip(`${item.label} · Period A`, item.countA, calculatePercentage(item.countA, totalA), text.textContent)
+    );
     const barB = document.createElement("i");
     barB.className = "period-b";
     barB.style.width = `${(item.countB / maximum) * 100}%`;
-    window.CatalogLensChartPresentation.addTooltip(barB, `${item.label}, Period B: ${item.countB}`);
+    window.CatalogLensChartPresentation.addTooltip(
+      barB,
+      window.CatalogLensChartPresentation.barTooltip(`${item.label} · Period B`, item.countB, calculatePercentage(item.countB, totalB), text.textContent)
+    );
     bars.append(barA, barB);
     const value = document.createElement("strong");
     value.textContent = `${item.countA} / ${item.countB}`;
@@ -1045,7 +1060,11 @@ function renderCharts(container) {
       `Categories below ${state.filters.gapThreshold}%`,
       `Share of catalog grouped by ${groupLabel(state.filters.groupBy)}. Only categories below the user-defined threshold are shown.`,
       categories.map(function (item) { return { ...item, count: item.share }; }),
-      function (item) { return `${item.share.toFixed(1)}%`; }
+      function (item) { return `${item.share.toFixed(1)}%`; },
+      function (item) {
+        const sourceCategory = categories.find(function (category) { return category.label === item.label; });
+        return { count: sourceCategory.count, percentage: item.share };
+      }
     ));
   } else {
     const field = report.id === "recent" ? "dateAdded" : state.filters.groupBy;
@@ -1205,9 +1224,10 @@ function createVerticalBarVisual(title, description, categories) {
   chart.setAttribute("role", "img");
   chart.setAttribute("aria-label", categories.map(function (item) { return `${item.label}: ${item.count}`; }).join(", "));
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
-  categories.slice(0, 6).forEach(function (item, index) {
+  const total = categories.reduce(function (sum, item) { return sum + item.count; }, 0);
+  categories.slice(0, 6).forEach(function (item) {
     const column = document.createElement("div");
-    column.className = "vertical-bar-column";
+    column.className = `vertical-bar-column${item.count === maximum ? " is-highest" : ""}`;
     const value = document.createElement("strong");
     value.textContent = item.count;
     const track = document.createElement("div");
@@ -1215,8 +1235,11 @@ function createVerticalBarVisual(title, description, categories) {
     const fill = document.createElement("div");
     fill.className = "vertical-bar-fill";
     fill.style.width = `${(item.count / maximum) * 100}%`;
-    fill.style.background = index === 0 ? "var(--chart-series-1)" : "var(--chart-series-2-soft)";
-    window.CatalogLensChartPresentation.addTooltip(fill, `${item.label}: ${item.count}`);
+    fill.style.background = item.count === maximum ? "var(--chart-series-1)" : "var(--chart-series-1-soft)";
+    window.CatalogLensChartPresentation.addTooltip(
+      fill,
+      window.CatalogLensChartPresentation.barTooltip(item.label, item.count, calculatePercentage(item.count, total), description)
+    );
     track.append(fill);
     const label = document.createElement("span");
     label.textContent = item.label;

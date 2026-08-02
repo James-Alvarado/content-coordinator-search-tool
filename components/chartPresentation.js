@@ -78,5 +78,10 @@
     target.addEventListener("blur", showTotal);
   }
 
-  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, bindDonutCenter, smoothPath });
+  function barTooltip(label, count, percentage, description) {
+    const percentageLabel = percentage === null || percentage === undefined ? "Not available" : `${percentage.toFixed(1)}%`;
+    return `${label}\nCount: ${count}\nPercentage: ${percentageLabel}\n${description}`;
+  }
+
+  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, smoothPath });
 }());
