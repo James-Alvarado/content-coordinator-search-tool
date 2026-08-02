@@ -167,6 +167,9 @@
 .comparison-bars i { margin-inline: 3px; }
 .period-a { background: var(--chart-series-1); }
 .period-b { background: var(--chart-series-2); }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: -14px 0 22px; color: var(--chart-label-color); font-size: var(--chart-label-size); }
+.chart-legend > span { display: inline-flex; align-items: center; gap: 7px; }
+.chart-legend i { width: 9px; height: 9px; border-radius: 3px; }
 
 .donut-layout,
 .vertical-bar-chart,
@@ -200,6 +203,33 @@
   background-image: linear-gradient(var(--chart-grid-color) 1px, transparent 1px);
 }
 
+.vertical-bar-chart {
+  display: grid;
+  min-height: 0;
+  gap: var(--chart-row-gap);
+  padding-top: 0;
+}
+.vertical-bar-column {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(90px, 0.9fr) minmax(120px, 2fr) 48px;
+  grid-template-rows: auto;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+.vertical-bar-track {
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--chart-track-color);
+}
+.vertical-bar-fill { height: 100%; min-height: 0; border-radius: 999px; }
+.vertical-bar-column strong { text-align: right; }
+.vertical-bar-column span { text-overflow: ellipsis; }
+
 .vertical-bar-column span,
 .line-chart-labels {
   color: var(--chart-label-color);
@@ -218,8 +248,12 @@
   transition: r var(--chart-transition-duration) var(--chart-transition-easing), filter var(--chart-transition-duration) var(--chart-transition-easing);
 }
 .line-point:hover { r: 5px; filter: none; }
+.line-point.is-highest { fill: var(--chart-series-1); stroke: var(--chart-inner-surface); stroke-width: 2; }
+.line-point.is-latest { r: 5px; stroke-width: 3; }
+.line-point.is-highest.is-latest { r: 6px; }
 
 .chart-tooltip {
+  position: fixed;
   z-index: 10;
   max-width: 240px;
   border-radius: var(--chart-inner-radius);
@@ -231,6 +265,15 @@
   pointer-events: none;
 }
 
+.bar-fill:focus-visible,
+.comparison-bars i:focus-visible,
+.vertical-bar-fill:focus-visible,
+.donut-legend-item:focus-visible,
+.line-point:focus-visible {
+  outline: 2px solid var(--chart-series-1);
+  outline-offset: 3px;
+}
+
 @media (max-width: 720px) {
   :root {
     --chart-card-padding: 20px;
@@ -240,6 +283,7 @@
 
   .chart-card,
   .executive-visual { overflow: hidden; }
+  .vertical-bar-column { grid-template-columns: minmax(76px, 0.85fr) minmax(90px, 1.6fr) 42px; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

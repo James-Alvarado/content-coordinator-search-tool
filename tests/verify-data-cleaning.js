@@ -84,6 +84,10 @@ function createApplicationHarness() {
     fs.readFileSync(path.join(projectRoot, "data-cleaning.js"), "utf8"),
     context
   );
+  vm.runInContext(
+    fs.readFileSync(path.join(projectRoot, "components/chartPresentation.js"), "utf8"),
+    context
+  );
 
   const applicationSource = fs.readFileSync(path.join(projectRoot, "script.js"), "utf8")
     .replace(/\nloadDefaultDataset\(\);\s*$/, "")
