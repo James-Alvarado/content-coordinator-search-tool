@@ -1051,7 +1051,14 @@ function renderCharts(container) {
   }
 }
 
-const executiveChartColors = ["#5635c6", "#5791df", "#25a18e", "#e09f3e", "#d65d7a", "#8c87a3"];
+const executiveChartColors = [
+  "var(--chart-series-1)",
+  "var(--chart-series-2)",
+  "var(--chart-series-3)",
+  "var(--chart-series-4)",
+  "var(--chart-series-5)",
+  "var(--chart-series-6)"
+];
 
 function createExecutiveVisual(title, description, wide) {
   const card = document.createElement("section");
@@ -1158,7 +1165,7 @@ function createVerticalBarVisual(title, description, categories) {
     const fill = document.createElement("div");
     fill.className = "vertical-bar-fill";
     fill.style.height = `${(item.count / maximum) * 100}%`;
-    fill.style.background = index === 0 ? "#5635c6" : "#8da9eb";
+    fill.style.background = index === 0 ? "var(--chart-series-1)" : "var(--chart-series-2-soft)";
     track.append(fill);
     const label = document.createElement("span");
     label.textContent = item.label;
