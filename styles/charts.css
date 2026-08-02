@@ -3,66 +3,67 @@
 
 :root {
   --chart-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --chart-title-size: 1rem;
-  --chart-subtitle-size: 0.78rem;
-  --chart-label-size: 0.72rem;
-  --chart-value-size: 0.74rem;
+  --chart-title-size: 1.02rem;
+  --chart-subtitle-size: 0.8rem;
+  --chart-label-size: 0.73rem;
+  --chart-value-size: 0.75rem;
   --chart-title-color: #fcfbff;
-  --chart-label-color: #aaa5b8;
-  --chart-axis-color: rgba(255, 255, 255, 0.2);
-  --chart-grid-color: rgba(255, 255, 255, 0.085);
-  --chart-track-color: rgba(255, 255, 255, 0.075);
-  --chart-surface: linear-gradient(145deg, rgba(27, 25, 39, 0.9), rgba(15, 14, 23, 0.9));
-  --chart-inner-surface: #17151f;
-  --chart-border-color: rgba(255, 255, 255, 0.09);
-  --chart-border-radius: 20px;
-  --chart-inner-radius: 8px;
-  --chart-card-padding: 25px;
-  --chart-grid-gap: 18px;
-  --chart-row-gap: 11px;
-  --chart-shadow: 0 16px 45px rgba(0, 0, 0, 0.18);
-  --chart-hover-shadow: 0 22px 55px rgba(0, 0, 0, 0.24);
+  --chart-label-color: #9f9aaa;
+  --chart-axis-color: rgba(255, 255, 255, 0.14);
+  --chart-grid-color: rgba(255, 255, 255, 0.055);
+  --chart-track-color: rgba(255, 255, 255, 0.06);
+  --chart-surface: #15141c;
+  --chart-inner-surface: #15141c;
+  --chart-border-color: rgba(255, 255, 255, 0.065);
+  --chart-border-radius: 16px;
+  --chart-inner-radius: 10px;
+  --chart-card-padding: 32px;
+  --chart-grid-gap: 24px;
+  --chart-row-gap: 14px;
+  --chart-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --chart-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
   --chart-transition-duration: 180ms;
   --chart-transition-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
   --chart-tooltip-bg: #f8f6ff;
   --chart-tooltip-color: #211d2e;
-  --chart-tooltip-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-  --chart-series-1: #8b5cf6;
-  --chart-series-2: #60a5fa;
-  --chart-series-2-soft: #8da9eb;
-  --chart-series-3: #2dd4bf;
-  --chart-series-4: #f6b94a;
-  --chart-series-5: #f472b6;
-  --chart-series-6: #a8a3ba;
+  --chart-tooltip-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+  --chart-series-1: #8b7cf6;
+  --chart-series-2: #6f9ed8;
+  --chart-series-2-soft: #7f9fc7;
+  --chart-series-3: #62a6a0;
+  --chart-series-4: #77859a;
+  --chart-series-5: #9b8fc4;
+  --chart-series-6: #696778;
 }
 
 :root[data-theme="light"] {
   --chart-title-color: #211d2e;
   --chart-label-color: #6e687b;
-  --chart-axis-color: rgba(49, 38, 75, 0.2);
-  --chart-grid-color: rgba(49, 38, 75, 0.09);
-  --chart-track-color: rgba(49, 38, 75, 0.08);
-  --chart-surface: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(248, 245, 252, 0.88));
-  --chart-inner-surface: #fbf9fd;
-  --chart-border-color: rgba(49, 38, 75, 0.1);
-  --chart-shadow: 0 15px 40px rgba(56, 42, 87, 0.08);
-  --chart-hover-shadow: 0 20px 48px rgba(56, 42, 87, 0.13);
+  --chart-axis-color: rgba(49, 38, 75, 0.14);
+  --chart-grid-color: rgba(49, 38, 75, 0.055);
+  --chart-track-color: rgba(49, 38, 75, 0.055);
+  --chart-surface: #ffffff;
+  --chart-inner-surface: #ffffff;
+  --chart-border-color: rgba(49, 38, 75, 0.075);
+  --chart-shadow: 0 1px 3px rgba(56, 42, 87, 0.055);
+  --chart-hover-shadow: 0 3px 10px rgba(56, 42, 87, 0.07);
   --chart-tooltip-bg: #211d2e;
   --chart-tooltip-color: #fcfbff;
-  --chart-tooltip-shadow: 0 12px 30px rgba(56, 42, 87, 0.22);
-  --chart-series-1: #7650dc;
-  --chart-series-2: #397fd1;
-  --chart-series-2-soft: #7298df;
-  --chart-series-3: #168b7c;
-  --chart-series-4: #c98418;
-  --chart-series-5: #c64e89;
-  --chart-series-6: #777080;
+  --chart-tooltip-shadow: 0 6px 18px rgba(56, 42, 87, 0.16);
+  --chart-series-1: #6957c8;
+  --chart-series-2: #477eb8;
+  --chart-series-2-soft: #6d8fb8;
+  --chart-series-3: #3f817b;
+  --chart-series-4: #64748b;
+  --chart-series-5: #8174a8;
+  --chart-series-6: #85818d;
 }
 
 .chart-grid,
 .executive-chart-grid {
   gap: var(--chart-grid-gap);
 }
+.chart-grid { margin-block: 24px; }
 
 .chart-card,
 .executive-visual {
@@ -74,11 +75,16 @@
   font-family: var(--chart-font-family);
   transition:
     border-color var(--chart-transition-duration) var(--chart-transition-easing),
-    box-shadow var(--chart-transition-duration) var(--chart-transition-easing),
-    transform var(--chart-transition-duration) var(--chart-transition-easing);
+    box-shadow var(--chart-transition-duration) var(--chart-transition-easing);
 }
 
 .chart-card { padding: var(--chart-card-padding); }
+:root[data-theme="light"] .chart-card,
+:root[data-theme="light"] .executive-visual {
+  border-color: var(--chart-border-color);
+  background: var(--chart-surface);
+  box-shadow: var(--chart-shadow);
+}
 .executive-visual > .chart-card,
 .executive-visual > .chart-card:hover {
   box-shadow: none;
@@ -87,27 +93,26 @@
 
 .chart-card:hover,
 .executive-visual:hover {
-  border-color: color-mix(in srgb, var(--chart-series-1) 42%, var(--chart-border-color));
+  border-color: color-mix(in srgb, var(--chart-series-1) 24%, var(--chart-border-color));
   box-shadow: var(--chart-hover-shadow);
-  transform: translateY(-2px);
 }
 
 .chart-card h2,
 .executive-visual h3 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   color: var(--chart-title-color);
   font-size: var(--chart-title-size);
-  font-weight: 800;
-  letter-spacing: -0.015em;
-  line-height: 1.3;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 .chart-card > p,
 .executive-visual > p {
-  margin: 0 0 22px;
+  margin: 0 0 28px;
   color: var(--chart-label-color);
   font-size: var(--chart-subtitle-size);
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .bar-chart,
@@ -147,15 +152,15 @@
 }
 
 .bar-fill {
-  background: linear-gradient(90deg, var(--chart-series-1), color-mix(in srgb, var(--chart-series-1) 58%, white));
-  box-shadow: 0 0 15px color-mix(in srgb, var(--chart-series-1) 24%, transparent);
+  background: var(--chart-series-1);
+  box-shadow: none;
   transform-origin: left center;
 }
 
 .bar-row:hover .bar-fill,
 .comparison-row:hover .comparison-bars i,
 .vertical-bar-column:hover .vertical-bar-fill {
-  filter: brightness(1.12) saturate(1.08);
+  filter: brightness(1.08);
 }
 
 .comparison-bars { padding-block: 3px; }
@@ -170,13 +175,13 @@
 }
 
 .donut-chart {
-  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.14));
-  transition: filter var(--chart-transition-duration) var(--chart-transition-easing), transform var(--chart-transition-duration) var(--chart-transition-easing);
+  filter: none;
+  transition: opacity var(--chart-transition-duration) var(--chart-transition-easing);
 }
 
 .donut-chart:hover {
-  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.2));
-  transform: scale(1.015);
+  filter: none;
+  opacity: 0.94;
 }
 
 .donut-center {
@@ -188,7 +193,7 @@
 .donut-center span { color: var(--chart-label-color); }
 .donut-legend { gap: 10px; }
 .donut-legend-item { color: var(--chart-label-color); font-size: var(--chart-label-size); }
-.donut-swatch { box-shadow: 0 0 0 2px var(--chart-inner-surface); }
+.donut-swatch { box-shadow: none; }
 
 .vertical-bar-track {
   border-color: var(--chart-axis-color);
@@ -201,23 +206,24 @@
   font-size: var(--chart-label-size);
 }
 
-.line-grid { stroke: var(--chart-grid-color); }
+.line-grid { stroke: var(--chart-grid-color); stroke-width: 1; }
 .line-series {
   stroke: var(--chart-series-1);
-  filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--chart-series-1) 25%, transparent));
+  filter: none;
+  stroke-width: 2;
 }
 .line-point {
   fill: var(--chart-inner-surface);
   stroke: var(--chart-series-1);
   transition: r var(--chart-transition-duration) var(--chart-transition-easing), filter var(--chart-transition-duration) var(--chart-transition-easing);
 }
-.line-point:hover { r: 6px; filter: drop-shadow(0 3px 5px color-mix(in srgb, var(--chart-series-1) 35%, transparent)); }
+.line-point:hover { r: 5px; filter: none; }
 
 .chart-tooltip {
   z-index: 10;
   max-width: 240px;
   border-radius: var(--chart-inner-radius);
-  padding: 8px 10px;
+  padding: 9px 12px;
   background: var(--chart-tooltip-bg);
   color: var(--chart-tooltip-color);
   box-shadow: var(--chart-tooltip-shadow);
@@ -227,9 +233,9 @@
 
 @media (max-width: 720px) {
   :root {
-    --chart-card-padding: 16px;
-    --chart-grid-gap: 14px;
-    --chart-row-gap: 9px;
+    --chart-card-padding: 20px;
+    --chart-grid-gap: 16px;
+    --chart-row-gap: 10px;
   }
 
   .chart-card,
