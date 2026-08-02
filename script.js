@@ -948,6 +948,19 @@ function createBarChart(title, description, categories, valueFormatter, tooltipV
   chart.className = "bar-chart";
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
   const total = categories.reduce(function (sum, item) { return sum + item.count; }, 0);
+  const topCategory = categories.reduce(function (top, item) { return !top || item.count > top.count ? item : top; }, null);
+  let insight = null;
+  if (topCategory) {
+    const topValues = tooltipValues
+      ? tooltipValues(topCategory)
+      : { count: topCategory.count, percentage: calculatePercentage(topCategory.count, total) };
+    insight = window.CatalogLensChartPresentation.createInsightCard(
+      "Top category",
+      topCategory.label,
+      `${topValues.count} records · ${topValues.percentage.toFixed(1)}%`,
+      title
+    );
+  }
 
   categories.slice(0, 10).forEach(function (item) {
     const row = document.createElement("div");
@@ -972,7 +985,9 @@ function createBarChart(title, description, categories, valueFormatter, tooltipV
     row.append(label, track, value);
     chart.append(row);
   });
-  card.append(heading, text, chart);
+  card.append(heading, text);
+  if (insight) card.append(insight);
+  card.append(chart);
   return card;
 }
 
@@ -1012,6 +1027,15 @@ function createComparisonChart() {
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
   const totalA = categories.reduce(function (sum, item) { return sum + item.countA; }, 0);
   const totalB = categories.reduce(function (sum, item) { return sum + item.countB; }, 0);
+  const topCategory = categories[0];
+  const insight = topCategory
+    ? window.CatalogLensChartPresentation.createInsightCard(
+        "Leading category",
+        topCategory.label,
+        `${topCategory.countA} / ${topCategory.countB} records`,
+        "Period A / Period B"
+      )
+    : null;
   categories.slice(0, 10).forEach(function (item) {
     const row = document.createElement("div");
     row.className = `comparison-row${item.count === maximum ? " is-highest" : ""}`;
@@ -1039,7 +1063,9 @@ function createComparisonChart() {
     row.append(label, bars, value);
     chart.append(row);
   });
-  card.append(heading, text, legend, chart);
+  card.append(heading, text);
+  if (insight) card.append(insight);
+  card.append(legend, chart);
   return card;
 }
 
@@ -1141,6 +1167,15 @@ function createDonutVisual(title, description, categories, total) {
   const centerLabel = document.createElement("span");
   centerLabel.textContent = "titles";
   center.append(centerValue, centerLabel);
+  const topCategory = parts[0];
+  const insight = topCategory
+    ? window.CatalogLensChartPresentation.createInsightCard(
+        "Largest segment",
+        topCategory.label,
+        `${topCategory.count} titles · ${(calculatePercentage(topCategory.count, total) || 0).toFixed(1)}%`,
+        `Most common ${title.replace("Distribution by ", "").toLowerCase()}`
+      )
+    : null;
 
   parts.forEach(function (item, index) {
     const percentage = calculatePercentage(item.count, total) || 0;
@@ -1195,6 +1230,7 @@ function createDonutVisual(title, description, categories, total) {
     legend.append(row);
   });
   layout.append(donut, legend);
+  if (insight) card.append(insight);
   card.append(layout);
   return card;
 }
@@ -1225,6 +1261,15 @@ function createVerticalBarVisual(title, description, categories) {
   chart.setAttribute("aria-label", categories.map(function (item) { return `${item.label}: ${item.count}`; }).join(", "));
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
   const total = categories.reduce(function (sum, item) { return sum + item.count; }, 0);
+  const topCategory = categories.reduce(function (top, item) { return !top || item.count > top.count ? item : top; }, null);
+  const insight = topCategory
+    ? window.CatalogLensChartPresentation.createInsightCard(
+        "Top category",
+        topCategory.label,
+        `${topCategory.count} records · ${(calculatePercentage(topCategory.count, total) || 0).toFixed(1)}%`,
+        title
+      )
+    : null;
   categories.slice(0, 6).forEach(function (item) {
     const column = document.createElement("div");
     column.className = `vertical-bar-column${item.count === maximum ? " is-highest" : ""}`;
@@ -1246,6 +1291,7 @@ function createVerticalBarVisual(title, description, categories) {
     column.append(label, track, value);
     chart.append(column);
   });
+  if (insight) card.append(insight);
   card.append(chart);
   return card;
 }
@@ -1304,6 +1350,18 @@ function createTrendVisual(records) {
     );
     svg.append(circle);
   });
+  const latestPoint = points[latestIndex];
+  const latestChange = latestIndex > 0
+    ? calculatePercentageChange(points[latestIndex - 1].count, latestPoint.count)
+    : null;
+  const insight = latestPoint
+    ? window.CatalogLensChartPresentation.createInsightCard(
+        "Latest period",
+        latestPoint.label,
+        `${latestPoint.count} titles`,
+        latestChange === null ? "Latest available month" : `${latestChange > 0 ? "+" : ""}${latestChange.toFixed(1)}% from previous month`
+      )
+    : null;
   const labels = document.createElement("div");
   labels.className = "line-chart-labels";
   series.forEach(function (item) {
@@ -1312,6 +1370,7 @@ function createTrendVisual(records) {
     labels.append(label);
   });
   chart.append(svg, labels);
+  if (insight) card.append(insight);
   card.append(chart);
   return card;
 }

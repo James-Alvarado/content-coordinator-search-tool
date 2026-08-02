@@ -90,5 +90,20 @@
     return `Date: ${date}\nValue: ${value}${changeLine}`;
   }
 
-  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, smoothPath, trendTooltip });
+  function createInsightCard(eyebrow, value, metric, detail) {
+    const card = document.createElement("aside");
+    card.className = "chart-insight-card";
+    const label = document.createElement("span");
+    label.textContent = eyebrow;
+    const primary = document.createElement("strong");
+    primary.textContent = value;
+    const summary = document.createElement("b");
+    summary.textContent = metric;
+    const context = document.createElement("small");
+    context.textContent = detail;
+    card.append(label, primary, summary, context);
+    return card;
+  }
+
+  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, createInsightCard, smoothPath, trendTooltip });
 }());

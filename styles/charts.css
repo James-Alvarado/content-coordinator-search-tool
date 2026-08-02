@@ -117,6 +117,43 @@
   line-height: 1.6;
 }
 
+.chart-insight-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 18px;
+  margin: -8px 0 28px;
+  border-radius: 12px;
+  padding: 15px 17px;
+  background: color-mix(in srgb, var(--chart-series-1) 7%, transparent);
+}
+.chart-insight-card > span {
+  grid-column: 1 / -1;
+  color: var(--chart-label-color);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.chart-insight-card > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--chart-title-color);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chart-insight-card > b {
+  color: var(--chart-series-1);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.chart-insight-card > small {
+  grid-column: 1 / -1;
+  color: var(--chart-label-color);
+  font-size: 0.69rem;
+}
+
 .bar-chart,
 .comparison-chart {
   display: grid;
@@ -328,6 +365,8 @@
 
   .chart-card,
   .executive-visual { overflow: hidden; }
+  .chart-insight-card { grid-template-columns: 1fr; }
+  .chart-insight-card > b { text-align: left; }
   .vertical-bar-column { grid-template-columns: minmax(76px, 0.85fr) minmax(90px, 1.6fr) 42px; gap: 8px; }
 }
 
