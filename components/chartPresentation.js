@@ -83,5 +83,12 @@
     return `${label}\nCount: ${count}\nPercentage: ${percentageLabel}\n${description}`;
   }
 
-  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, smoothPath });
+  function trendTooltip(date, value, percentageChange) {
+    const changeLine = percentageChange === null || percentageChange === undefined
+      ? ""
+      : `\nChange: ${percentageChange > 0 ? "+" : ""}${percentageChange.toFixed(1)}%`;
+    return `Date: ${date}\nValue: ${value}${changeLine}`;
+  }
+
+  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, smoothPath, trendTooltip });
 }());

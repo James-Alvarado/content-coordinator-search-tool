@@ -1278,17 +1278,30 @@ function createTrendVisual(records) {
   path.setAttribute("d", window.CatalogLensChartPresentation.smoothPath(points));
   path.setAttribute("class", "line-series");
   svg.append(path);
-  const highestCount = Math.max(...points.map(function (point) { return point.count; }), 0);
+  const highestIndex = points.reduce(function (result, point, index) {
+    return result === -1 || point.count > points[result].count ? index : result;
+  }, -1);
+  const lowestIndex = points.reduce(function (result, point, index) {
+    return result === -1 || point.count < points[result].count ? index : result;
+  }, -1);
+  const latestIndex = points.length - 1;
+  const highlightedPointIndexes = new Set([highestIndex, lowestIndex, latestIndex]);
   points.forEach(function (point, index) {
+    if (!highlightedPointIndexes.has(index)) return;
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("cx", point.x);
     circle.setAttribute("cy", point.y);
     circle.setAttribute("r", "4");
     const pointClasses = ["line-point"];
-    if (point.count === highestCount) pointClasses.push("is-highest");
-    if (index === points.length - 1) pointClasses.push("is-latest");
+    if (index === highestIndex) pointClasses.push("is-highest");
+    if (index === lowestIndex) pointClasses.push("is-lowest");
+    if (index === latestIndex) pointClasses.push("is-latest");
     circle.setAttribute("class", pointClasses.join(" "));
-    window.CatalogLensChartPresentation.addTooltip(circle, `${point.label}: ${point.count} titles`);
+    const percentageChange = index > 0 ? calculatePercentageChange(points[index - 1].count, point.count) : null;
+    window.CatalogLensChartPresentation.addTooltip(
+      circle,
+      window.CatalogLensChartPresentation.trendTooltip(point.label, point.count, percentageChange)
+    );
     svg.append(circle);
   });
   const labels = document.createElement("div");

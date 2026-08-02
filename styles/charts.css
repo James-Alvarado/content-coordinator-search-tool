@@ -10,7 +10,7 @@
   --chart-title-color: #fcfbff;
   --chart-label-color: #9f9aaa;
   --chart-axis-color: rgba(255, 255, 255, 0.14);
-  --chart-grid-color: rgba(255, 255, 255, 0.055);
+  --chart-grid-color: rgba(255, 255, 255, 0.04);
   --chart-track-color: rgba(255, 255, 255, 0.06);
   --chart-surface: #15141c;
   --chart-inner-surface: #15141c;
@@ -41,7 +41,7 @@
   --chart-title-color: #211d2e;
   --chart-label-color: #6e687b;
   --chart-axis-color: rgba(49, 38, 75, 0.14);
-  --chart-grid-color: rgba(49, 38, 75, 0.055);
+  --chart-grid-color: rgba(49, 38, 75, 0.04);
   --chart-track-color: rgba(49, 38, 75, 0.055);
   --chart-surface: #ffffff;
   --chart-inner-surface: #ffffff;
@@ -288,10 +288,13 @@
   stroke: var(--chart-series-1);
   transition: r var(--chart-transition-duration) var(--chart-transition-easing), filter var(--chart-transition-duration) var(--chart-transition-easing);
 }
-.line-point:hover { r: 5px; filter: none; }
+.line-point:hover { filter: none; }
 .line-point.is-highest { fill: var(--chart-series-1); stroke: var(--chart-inner-surface); stroke-width: 2; }
+.line-point.is-lowest { fill: var(--chart-inner-surface); stroke: var(--chart-series-1); stroke-width: 2; }
 .line-point.is-latest { r: 5px; stroke-width: 3; }
 .line-point.is-highest.is-latest { r: 6px; }
+.line-point:hover,
+.line-point:focus-visible { r: 7px; }
 
 .chart-tooltip {
   position: fixed;
