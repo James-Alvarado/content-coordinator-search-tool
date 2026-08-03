@@ -949,6 +949,7 @@ function createBarChart(title, description, categories, valueFormatter, tooltipV
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
   const total = categories.reduce(function (sum, item) { return sum + item.count; }, 0);
   const topCategory = categories.reduce(function (top, item) { return !top || item.count > top.count ? item : top; }, null);
+  const lowestCategory = categories.reduce(function (lowest, item) { return !lowest || item.count < lowest.count ? item : lowest; }, null);
   let insight = null;
   if (topCategory) {
     const topValues = tooltipValues
@@ -987,6 +988,14 @@ function createBarChart(title, description, categories, valueFormatter, tooltipV
   });
   card.append(heading, text);
   if (insight) card.append(insight);
+  if (topCategory) {
+    card.append(window.CatalogLensChartPresentation.createAnnotations([
+      { label: "Highest value", value: `${topCategory.label} · ${valueFormatter ? valueFormatter(topCategory) : topCategory.count}` },
+      lowestCategory && lowestCategory !== topCategory
+        ? { label: "Lowest value", value: `${lowestCategory.label} · ${valueFormatter ? valueFormatter(lowestCategory) : lowestCategory.count}` }
+        : null
+    ]));
+  }
   card.append(chart);
   return card;
 }
@@ -1028,6 +1037,15 @@ function createComparisonChart() {
   const totalA = categories.reduce(function (sum, item) { return sum + item.countA; }, 0);
   const totalB = categories.reduce(function (sum, item) { return sum + item.countB; }, 0);
   const topCategory = categories[0];
+  const categoryChanges = categories.map(function (item) {
+    return { label: item.label, difference: item.countB - item.countA };
+  });
+  const largestGrowth = categoryChanges.filter(function (item) { return item.difference > 0; }).reduce(function (largest, item) {
+    return !largest || item.difference > largest.difference ? item : largest;
+  }, null);
+  const largestDecline = categoryChanges.filter(function (item) { return item.difference < 0; }).reduce(function (largest, item) {
+    return !largest || item.difference < largest.difference ? item : largest;
+  }, null);
   const insight = topCategory
     ? window.CatalogLensChartPresentation.createInsightCard(
         "Leading category",
@@ -1065,6 +1083,11 @@ function createComparisonChart() {
   });
   card.append(heading, text);
   if (insight) card.append(insight);
+  card.append(window.CatalogLensChartPresentation.createAnnotations([
+    topCategory ? { label: "Most represented", value: `${topCategory.label} · ${topCategory.count}` } : null,
+    largestGrowth ? { label: "Largest growth", value: `${largestGrowth.label} · +${largestGrowth.difference}` } : null,
+    largestDecline ? { label: "Largest decline", value: `${largestDecline.label} · ${largestDecline.difference}` } : null
+  ]));
   card.append(legend, chart);
   return card;
 }
@@ -1231,6 +1254,14 @@ function createDonutVisual(title, description, categories, total) {
   });
   layout.append(donut, legend);
   if (insight) card.append(insight);
+  if (topCategory) {
+    card.append(window.CatalogLensChartPresentation.createAnnotations([
+      {
+        label: "Most represented category",
+        value: `${topCategory.label} · ${topCategory.count} · ${(calculatePercentage(topCategory.count, total) || 0).toFixed(1)}%`
+      }
+    ]));
+  }
   card.append(layout);
   return card;
 }
@@ -1262,6 +1293,7 @@ function createVerticalBarVisual(title, description, categories) {
   const maximum = Math.max(...categories.map(function (item) { return item.count; }), 1);
   const total = categories.reduce(function (sum, item) { return sum + item.count; }, 0);
   const topCategory = categories.reduce(function (top, item) { return !top || item.count > top.count ? item : top; }, null);
+  const lowestCategory = categories.reduce(function (lowest, item) { return !lowest || item.count < lowest.count ? item : lowest; }, null);
   const insight = topCategory
     ? window.CatalogLensChartPresentation.createInsightCard(
         "Top category",
@@ -1292,6 +1324,12 @@ function createVerticalBarVisual(title, description, categories) {
     chart.append(column);
   });
   if (insight) card.append(insight);
+  if (topCategory) {
+    card.append(window.CatalogLensChartPresentation.createAnnotations([
+      { label: "Highest value", value: `${topCategory.label} · ${topCategory.count}` },
+      lowestCategory && lowestCategory !== topCategory ? { label: "Lowest value", value: `${lowestCategory.label} · ${lowestCategory.count}` } : null
+    ]));
+  }
   card.append(chart);
   return card;
 }
@@ -1362,6 +1400,18 @@ function createTrendVisual(records) {
         latestChange === null ? "Latest available month" : `${latestChange > 0 ? "+" : ""}${latestChange.toFixed(1)}% from previous month`
       )
     : null;
+  const changes = points.slice(1).map(function (point, index) {
+    return {
+      label: point.label,
+      change: calculatePercentageChange(points[index].count, point.count)
+    };
+  }).filter(function (item) { return item.change !== null; });
+  const largestGrowth = changes.filter(function (item) { return item.change > 0; }).reduce(function (largest, item) {
+    return !largest || item.change > largest.change ? item : largest;
+  }, null);
+  const largestDecline = changes.filter(function (item) { return item.change < 0; }).reduce(function (largest, item) {
+    return !largest || item.change < largest.change ? item : largest;
+  }, null);
   const labels = document.createElement("div");
   labels.className = "line-chart-labels";
   series.forEach(function (item) {
@@ -1371,6 +1421,12 @@ function createTrendVisual(records) {
   });
   chart.append(svg, labels);
   if (insight) card.append(insight);
+  card.append(window.CatalogLensChartPresentation.createAnnotations([
+    highestIndex >= 0 ? { label: "Highest value", value: `${points[highestIndex].label} · ${points[highestIndex].count}` } : null,
+    lowestIndex >= 0 ? { label: "Lowest value", value: `${points[lowestIndex].label} · ${points[lowestIndex].count}` } : null,
+    largestGrowth ? { label: "Largest growth", value: `${largestGrowth.label} · +${largestGrowth.change.toFixed(1)}%` } : null,
+    largestDecline ? { label: "Largest decline", value: `${largestDecline.label} · ${largestDecline.change.toFixed(1)}%` } : null
+  ]));
   card.append(chart);
   return card;
 }

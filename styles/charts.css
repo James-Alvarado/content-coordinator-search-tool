@@ -153,6 +153,36 @@
   color: var(--chart-label-color);
   font-size: 0.69rem;
 }
+.chart-annotations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -14px 0 24px;
+}
+.chart-annotations:empty { display: none; }
+.chart-annotations > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--chart-track-color);
+  color: var(--chart-label-color);
+  line-height: 1.3;
+}
+.chart-annotations b {
+  color: var(--chart-title-color);
+  font-size: 0.63rem;
+  font-weight: 750;
+}
+.chart-annotations small {
+  overflow: hidden;
+  max-width: 190px;
+  font-size: 0.63rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .bar-chart,
 .comparison-chart {
@@ -367,6 +397,8 @@
   .executive-visual { overflow: hidden; }
   .chart-insight-card { grid-template-columns: 1fr; }
   .chart-insight-card > b { text-align: left; }
+  .chart-annotations { align-items: stretch; flex-direction: column; }
+  .chart-annotations > span { width: 100%; justify-content: space-between; }
   .vertical-bar-column { grid-template-columns: minmax(76px, 0.85fr) minmax(90px, 1.6fr) 42px; gap: 8px; }
 }
 

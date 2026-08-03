@@ -105,5 +105,21 @@
     return card;
   }
 
-  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, createInsightCard, smoothPath, trendTooltip });
+  function createAnnotations(items) {
+    const annotations = document.createElement("aside");
+    annotations.className = "chart-annotations";
+    annotations.setAttribute("aria-label", "Chart annotations");
+    items.filter(function (item) { return item && item.value !== null && item.value !== undefined; }).forEach(function (item) {
+      const annotation = document.createElement("span");
+      const label = document.createElement("b");
+      label.textContent = item.label;
+      const value = document.createElement("small");
+      value.textContent = item.value;
+      annotation.append(label, value);
+      annotations.append(annotation);
+    });
+    return annotations;
+  }
+
+  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, createAnnotations, createInsightCard, smoothPath, trendTooltip });
 }());
