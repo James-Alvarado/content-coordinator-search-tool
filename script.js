@@ -963,7 +963,7 @@ function createBarChart(title, description, categories, valueFormatter, tooltipV
     );
   }
 
-  categories.slice(0, 10).forEach(function (item) {
+  categories.slice(0, 10).forEach(function (item, index) {
     const row = document.createElement("div");
     row.className = `bar-row${item.count === maximum ? " is-highest" : ""}`;
     const label = document.createElement("span");
@@ -973,6 +973,7 @@ function createBarChart(title, description, categories, valueFormatter, tooltipV
     const fill = document.createElement("div");
     fill.className = "bar-fill";
     fill.style.width = `${(item.count / maximum) * 100}%`;
+    fill.style.animationDelay = `${index * 24}ms`;
     const tooltipData = tooltipValues
       ? tooltipValues(item)
       : { count: item.count, percentage: calculatePercentage(item.count, total) };
@@ -997,6 +998,13 @@ function createBarChart(title, description, categories, valueFormatter, tooltipV
     ]));
   }
   card.append(chart);
+  window.CatalogLensChartPresentation.labelChartRegion(
+    card,
+    heading,
+    text,
+    chart,
+    categories.slice(0, 10).map(function (item) { return `${item.label}: ${valueFormatter ? valueFormatter(item) : item.count}`; }).join(". ")
+  );
   return card;
 }
 
@@ -1054,7 +1062,7 @@ function createComparisonChart() {
         "Period A / Period B"
       )
     : null;
-  categories.slice(0, 10).forEach(function (item) {
+  categories.slice(0, 10).forEach(function (item, index) {
     const row = document.createElement("div");
     row.className = `comparison-row${item.count === maximum ? " is-highest" : ""}`;
     const label = document.createElement("span");
@@ -1064,6 +1072,7 @@ function createComparisonChart() {
     const barA = document.createElement("i");
     barA.className = "period-a";
     barA.style.width = `${(item.countA / maximum) * 100}%`;
+    barA.style.animationDelay = `${index * 24}ms`;
     window.CatalogLensChartPresentation.addTooltip(
       barA,
       window.CatalogLensChartPresentation.barTooltip(item.label, item.countA, calculatePercentage(item.countA, totalA), text.textContent, "Period A")
@@ -1071,6 +1080,7 @@ function createComparisonChart() {
     const barB = document.createElement("i");
     barB.className = "period-b";
     barB.style.width = `${(item.countB / maximum) * 100}%`;
+    barB.style.animationDelay = `${index * 24 + 35}ms`;
     window.CatalogLensChartPresentation.addTooltip(
       barB,
       window.CatalogLensChartPresentation.barTooltip(item.label, item.countB, calculatePercentage(item.countB, totalB), text.textContent, "Period B")
@@ -1089,6 +1099,14 @@ function createComparisonChart() {
     largestDecline ? { label: "Largest decline", value: `${largestDecline.label} · ${largestDecline.difference}` } : null
   ]));
   card.append(legend, chart);
+  legend.setAttribute("aria-label", "Comparison chart legend");
+  window.CatalogLensChartPresentation.labelChartRegion(
+    card,
+    heading,
+    text,
+    chart,
+    categories.slice(0, 10).map(function (item) { return `${item.label}: Period A ${item.countA}, Period B ${item.countB}`; }).join(". ")
+  );
   return card;
 }
 
@@ -1170,11 +1188,14 @@ function createDonutVisual(title, description, categories, total) {
   layout.className = "donut-layout";
   const donut = document.createElement("div");
   donut.className = "donut-chart";
-  donut.setAttribute("role", "img");
-  donut.setAttribute("aria-label", `${title}. ${parts.map(function (item) { return `${item.label}: ${item.count}`; }).join(", ")}`);
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 260 240");
-  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("role", "group");
+  window.CatalogLensChartPresentation.addSvgDescription(
+    svg,
+    title,
+    `${description} ${parts.map(function (item) { return `${item.label}: ${item.count}`; }).join(". ")}`
+  );
   const track = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   track.setAttribute("class", "donut-track");
   track.setAttribute("cx", "130");
@@ -1185,6 +1206,7 @@ function createDonutVisual(title, description, categories, total) {
   let currentPercentage = 0;
   const center = document.createElement("div");
   center.className = "donut-center";
+  center.setAttribute("aria-hidden", "true");
   const centerValue = document.createElement("strong");
   centerValue.textContent = total;
   const centerLabel = document.createElement("span");
@@ -1227,6 +1249,7 @@ function createDonutVisual(title, description, categories, total) {
     const labelX = 130 + Math.cos(radians) * 103;
     const labelY = 120 + Math.sin(radians) * 103;
     outsideLabel.setAttribute("class", "donut-outside-label");
+    outsideLabel.setAttribute("aria-hidden", "true");
     outsideLabel.setAttribute("x", labelX);
     outsideLabel.setAttribute("y", labelY);
     outsideLabel.setAttribute("text-anchor", Math.cos(radians) > 0.2 ? "start" : Math.cos(radians) < -0.2 ? "end" : "middle");
@@ -1238,6 +1261,7 @@ function createDonutVisual(title, description, categories, total) {
 
   const legend = document.createElement("div");
   legend.className = "donut-legend";
+  legend.setAttribute("aria-label", `${title} legend`);
 
   parts.forEach(function (item, index) {
     const percentage = calculatePercentage(item.count, total) || 0;
@@ -1269,6 +1293,13 @@ function createDonutVisual(title, description, categories, total) {
     ]));
   }
   card.append(layout);
+  window.CatalogLensChartPresentation.labelChartRegion(
+    card,
+    card.querySelector("h3"),
+    card.querySelector(":scope > p"),
+    layout,
+    parts.map(function (item) { return `${item.label}: ${item.count}, ${(calculatePercentage(item.count, total) || 0).toFixed(1)} percent`; }).join(". ")
+  );
   return card;
 }
 
@@ -1308,7 +1339,7 @@ function createVerticalBarVisual(title, description, categories) {
         title
       )
     : null;
-  categories.slice(0, 6).forEach(function (item) {
+  categories.slice(0, 6).forEach(function (item, index) {
     const column = document.createElement("div");
     column.className = `vertical-bar-column${item.count === maximum ? " is-highest" : ""}`;
     const value = document.createElement("strong");
@@ -1319,6 +1350,7 @@ function createVerticalBarVisual(title, description, categories) {
     fill.className = "vertical-bar-fill";
     fill.style.width = `${(item.count / maximum) * 100}%`;
     fill.style.background = item.count === maximum ? "var(--chart-series-1)" : "var(--chart-series-1-soft)";
+    fill.style.animationDelay = `${index * 32}ms`;
     window.CatalogLensChartPresentation.addTooltip(
       fill,
       window.CatalogLensChartPresentation.barTooltip(item.label, item.count, calculatePercentage(item.count, total), description)
@@ -1337,6 +1369,13 @@ function createVerticalBarVisual(title, description, categories) {
     ]));
   }
   card.append(chart);
+  window.CatalogLensChartPresentation.labelChartRegion(
+    card,
+    card.querySelector("h3"),
+    card.querySelector(":scope > p"),
+    chart,
+    categories.slice(0, 6).map(function (item) { return `${item.label}: ${item.count}`; }).join(". ")
+  );
   return card;
 }
 
@@ -1347,8 +1386,12 @@ function createTrendVisual(records) {
   chart.className = "line-chart";
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 300 150");
-  svg.setAttribute("role", "img");
-  svg.setAttribute("aria-label", series.map(function (item) { return `${item.label}: ${item.count} titles`; }).join(", "));
+  svg.setAttribute("role", "group");
+  window.CatalogLensChartPresentation.addSvgDescription(
+    svg,
+    "Titles added over time",
+    series.map(function (item) { return `${item.label}: ${item.count} titles`; }).join(". ")
+  );
   const maximum = Math.max(...series.map(function (item) { return item.count; }), 1);
   [25, 60, 95, 130].forEach(function (y) {
     const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -1366,6 +1409,7 @@ function createTrendVisual(records) {
   });
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", window.CatalogLensChartPresentation.smoothPath(points));
+  path.setAttribute("pathLength", "1");
   path.setAttribute("class", "line-series");
   svg.append(path);
   const highestIndex = points.reduce(function (result, point, index) {
@@ -1434,6 +1478,13 @@ function createTrendVisual(records) {
     largestDecline ? { label: "Largest decline", value: `${largestDecline.label} · ${largestDecline.change.toFixed(1)}%` } : null
   ]));
   card.append(chart);
+  window.CatalogLensChartPresentation.labelChartRegion(
+    card,
+    card.querySelector("h3"),
+    card.querySelector(":scope > p"),
+    chart,
+    series.map(function (item) { return `${item.label}: ${item.count} titles`; }).join(". ")
+  );
   return card;
 }
 

@@ -1,6 +1,36 @@
 (function () {
   "use strict";
 
+  let accessibleChartId = 0;
+
+  function labelChartRegion(card, heading, description, visual, summary) {
+    accessibleChartId += 1;
+    const headingId = `chart-title-${accessibleChartId}`;
+    const descriptionId = `chart-description-${accessibleChartId}`;
+    heading.id = headingId;
+    description.id = descriptionId;
+    card.setAttribute("role", "region");
+    card.setAttribute("aria-labelledby", headingId);
+    card.setAttribute("aria-describedby", descriptionId);
+    visual.setAttribute("role", "group");
+    visual.setAttribute("aria-labelledby", headingId);
+    visual.setAttribute("aria-describedby", descriptionId);
+    if (summary) {
+      const accessibleSummary = document.createElement("p");
+      accessibleSummary.className = "chart-screen-reader-summary";
+      accessibleSummary.textContent = summary;
+      visual.append(accessibleSummary);
+    }
+  }
+
+  function addSvgDescription(svg, title, description) {
+    const titleElement = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    titleElement.textContent = title;
+    const descriptionElement = document.createElementNS("http://www.w3.org/2000/svg", "desc");
+    descriptionElement.textContent = description;
+    svg.append(titleElement, descriptionElement);
+  }
+
   function smoothPath(points) {
     if (points.length === 0) return "";
     if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
@@ -174,5 +204,5 @@
     return annotations;
   }
 
-  window.CatalogLensChartPresentation = Object.freeze({ addTooltip, barTooltip, bindDonutCenter, createAnnotations, createInsightCard, smoothPath, trendTooltip });
+  window.CatalogLensChartPresentation = Object.freeze({ addSvgDescription, addTooltip, barTooltip, bindDonutCenter, createAnnotations, createInsightCard, labelChartRegion, smoothPath, trendTooltip });
 }());

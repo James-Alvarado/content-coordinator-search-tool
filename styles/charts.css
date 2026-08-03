@@ -8,7 +8,7 @@
   --chart-label-size: 0.73rem;
   --chart-value-size: 0.75rem;
   --chart-title-color: #fcfbff;
-  --chart-label-color: #9f9aaa;
+  --chart-label-color: #b7b2c1;
   --chart-axis-color: rgba(255, 255, 255, 0.14);
   --chart-grid-color: rgba(255, 255, 255, 0.04);
   --chart-track-color: rgba(255, 255, 255, 0.06);
@@ -24,6 +24,7 @@
   --chart-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
   --chart-transition-duration: 180ms;
   --chart-transition-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --chart-enter-duration: 320ms;
   --chart-tooltip-bg: #ffffff;
   --chart-tooltip-color: #211d2e;
   --chart-tooltip-shadow: 0 8px 24px rgba(9, 8, 15, 0.16);
@@ -39,7 +40,7 @@
 
 :root[data-theme="light"] {
   --chart-title-color: #211d2e;
-  --chart-label-color: #6e687b;
+  --chart-label-color: #5f586d;
   --chart-axis-color: rgba(49, 38, 75, 0.14);
   --chart-grid-color: rgba(49, 38, 75, 0.04);
   --chart-track-color: rgba(49, 38, 75, 0.055);
@@ -63,18 +64,25 @@
 
 .chart-grid,
 .executive-chart-grid {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   gap: var(--chart-grid-gap);
 }
 .chart-grid { margin-block: 24px; }
 
 .chart-card,
 .executive-visual {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  overflow: hidden;
   border-color: var(--chart-border-color);
   border-radius: var(--chart-border-radius);
   background: var(--chart-surface);
   box-shadow: var(--chart-shadow);
   font-family: var(--chart-font-family);
+  animation: chart-fade-in var(--chart-enter-duration) var(--chart-transition-easing) both;
   transition:
     border-color var(--chart-transition-duration) var(--chart-transition-easing),
     box-shadow var(--chart-transition-duration) var(--chart-transition-easing);
@@ -97,6 +105,17 @@
 .executive-visual:hover {
   border-color: color-mix(in srgb, var(--chart-series-1) 24%, var(--chart-border-color));
   box-shadow: var(--chart-hover-shadow);
+}
+
+.chart-screen-reader-summary {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
 }
 
 .chart-card h2,
@@ -187,11 +206,14 @@
 .bar-chart,
 .comparison-chart {
   display: grid;
+  width: 100%;
+  min-width: 0;
   gap: var(--chart-row-gap);
 }
 
 .bar-row,
 .comparison-row {
+  min-width: 0;
   color: var(--chart-label-color);
   font-size: var(--chart-label-size);
 }
@@ -214,6 +236,8 @@
 .bar-fill,
 .comparison-bars i,
 .vertical-bar-fill {
+  animation: chart-bar-grow 360ms var(--chart-transition-easing) both;
+  transform-origin: left center;
   transition:
     filter var(--chart-transition-duration) var(--chart-transition-easing),
     opacity var(--chart-transition-duration) var(--chart-transition-easing),
@@ -243,8 +267,8 @@
 .comparison-bars i { margin-inline: 3px; }
 .period-a { background: var(--chart-series-1); }
 .period-b { background: var(--chart-series-1-soft); }
-.chart-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: -14px 0 22px; color: var(--chart-label-color); font-size: var(--chart-label-size); }
-.chart-legend > span { display: inline-flex; align-items: center; gap: 7px; }
+.chart-legend { display: flex; width: 100%; min-width: 0; flex-wrap: wrap; gap: 10px 16px; margin: -14px 0 22px; color: var(--chart-label-color); font-size: var(--chart-label-size); }
+.chart-legend > span { display: inline-flex; min-width: 0; align-items: center; gap: 7px; }
 .chart-legend i { width: 9px; height: 9px; border-radius: 3px; }
 
 .donut-layout,
@@ -252,16 +276,17 @@
 .line-chart {
   color: var(--chart-label-color);
 }
-.donut-layout { grid-template-columns: 1fr; gap: 24px; min-height: 0; }
+.donut-layout { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: 24px; min-height: 0; }
 
 .donut-chart {
   position: relative;
   width: min(260px, 100%);
+  max-width: 100%;
   aspect-ratio: 13 / 12;
   filter: none;
   transition: opacity var(--chart-transition-duration) var(--chart-transition-easing);
 }
-.donut-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.donut-chart svg { display: block; width: 100%; max-width: 100%; height: 100%; overflow: hidden; }
 .donut-track,
 .donut-segment { fill: none; }
 .donut-track { stroke: var(--chart-track-color); stroke-width: 26; }
@@ -302,8 +327,8 @@
 
 .donut-center strong { color: var(--chart-title-color); font-variant-numeric: tabular-nums; }
 .donut-center span { max-width: 74px; overflow: hidden; color: var(--chart-label-color); text-overflow: ellipsis; white-space: nowrap; }
-.donut-legend { gap: 10px; }
-.donut-legend-item { color: var(--chart-label-color); font-size: var(--chart-label-size); }
+.donut-legend { width: 100%; min-width: 0; gap: 10px; }
+.donut-legend-item { min-width: 0; color: var(--chart-label-color); font-size: var(--chart-label-size); }
 .donut-swatch { box-shadow: none; }
 
 .vertical-bar-track {
@@ -313,6 +338,8 @@
 
 .vertical-bar-chart {
   display: grid;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
   gap: var(--chart-row-gap);
   padding-top: 0;
@@ -347,12 +374,20 @@
 .line-grid { stroke: var(--chart-grid-color); stroke-width: 1; }
 .line-series {
   stroke: var(--chart-series-1);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
   filter: none;
   stroke-width: 2;
+  animation: chart-line-draw 520ms var(--chart-transition-easing) both;
 }
+.line-chart,
+.line-chart svg { width: 100%; max-width: 100%; }
+.line-chart { min-width: 0; overflow: hidden; }
+.line-chart svg { overflow: hidden; }
 .line-point {
   fill: var(--chart-inner-surface);
   stroke: var(--chart-series-1);
+  animation: chart-point-fade 220ms 360ms var(--chart-transition-easing) both;
   transition: r var(--chart-transition-duration) var(--chart-transition-easing), filter var(--chart-transition-duration) var(--chart-transition-easing);
 }
 .line-point:hover { filter: none; }
@@ -362,6 +397,23 @@
 .line-point.is-highest.is-latest { r: 6px; }
 .line-point:hover,
 .line-point:focus-visible { r: 7px; }
+
+@keyframes chart-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes chart-bar-grow {
+  from { opacity: 0.45; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+@keyframes chart-line-draw {
+  from { opacity: 0.45; stroke-dashoffset: 1; }
+  to { opacity: 1; stroke-dashoffset: 0; }
+}
+@keyframes chart-point-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 .chart-tooltip {
   position: fixed;
@@ -396,15 +448,15 @@
 }
 .chart-tooltip-details dt,
 .chart-tooltip-details dd { margin: 0; }
-.chart-tooltip-details dt { color: #99939f; }
-.chart-tooltip-details dd { overflow-wrap: anywhere; color: #5f5968; font-weight: 700; text-align: right; }
+.chart-tooltip-details dt { color: #6f6875; }
+.chart-tooltip-details dd { overflow-wrap: anywhere; color: #4e4857; font-weight: 700; text-align: right; }
 
 .bar-fill:focus-visible,
 .comparison-bars i:focus-visible,
 .vertical-bar-fill:focus-visible,
 .donut-legend-item:focus-visible,
 .line-point:focus-visible {
-  outline: 2px solid var(--chart-series-1);
+  outline: 3px solid var(--chart-series-1);
   outline-offset: 3px;
 }
 
@@ -418,10 +470,47 @@
   .chart-card,
   .executive-visual { overflow: hidden; }
   .chart-insight-card { grid-template-columns: 1fr; }
+  .chart-insight-card > strong { overflow-wrap: anywhere; text-overflow: clip; white-space: normal; }
   .chart-insight-card > b { text-align: left; }
   .chart-annotations { align-items: stretch; flex-direction: column; }
   .chart-annotations > span { width: 100%; justify-content: space-between; }
-  .vertical-bar-column { grid-template-columns: minmax(76px, 0.85fr) minmax(90px, 1.6fr) 42px; gap: 8px; }
+  .donut-chart { width: min(240px, 100%); margin-inline: auto; }
+  .donut-legend-item > span:nth-child(2) { overflow-wrap: anywhere; text-overflow: clip; white-space: normal; }
+}
+
+@media (max-width: 520px) {
+  :root { --chart-card-padding: 16px; }
+
+  .bar-row,
+  .comparison-row,
+  .vertical-bar-column {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "label value"
+      "track track";
+    gap: 7px 10px;
+  }
+  .bar-row > span,
+  .comparison-row > span,
+  .vertical-bar-column > span {
+    grid-area: label;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+  .bar-row > strong,
+  .comparison-row > strong,
+  .vertical-bar-column > strong { grid-area: value; align-self: start; text-align: right; }
+  .bar-track,
+  .comparison-bars,
+  .vertical-bar-track { grid-area: track; width: 100%; min-width: 0; }
+  .chart-legend { align-items: flex-start; flex-direction: column; }
+  .chart-annotations small { max-width: min(62vw, 220px); }
+  .line-chart-labels { gap: 6px; }
+  .line-chart-labels span { min-width: 0; font-size: 0.58rem; }
+  .chart-tooltip-details { grid-template-columns: 68px minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -434,8 +523,14 @@
   .donut-segment,
   .line-point {
     transition: none;
+    animation: none;
   }
 
+  .bar-fill,
+  .comparison-bars i,
+  .vertical-bar-fill { opacity: 1; transform: none; }
+  .line-series { stroke-dashoffset: 0; }
+  .line-point,
   .donut-segment { animation: none; opacity: 1; }
 
   .chart-card:hover,
