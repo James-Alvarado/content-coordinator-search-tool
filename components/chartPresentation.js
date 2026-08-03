@@ -31,16 +31,52 @@
   }
 
   function positionTooltip(tooltip, x, y) {
-    tooltip.style.left = `${x + 12}px`;
-    tooltip.style.top = `${y + 12}px`;
+    const gap = 14;
+    const width = tooltip.offsetWidth || 220;
+    const height = tooltip.offsetHeight || 120;
+    const viewportWidth = window.innerWidth || 1024;
+    const viewportHeight = window.innerHeight || 768;
+    const left = x + gap + width > viewportWidth ? x - width - gap : x + gap;
+    const top = y + gap + height > viewportHeight ? y - height - gap : y + gap;
+    tooltip.style.left = `${Math.max(8, Math.min(left, viewportWidth - width - 8))}px`;
+    tooltip.style.top = `${Math.max(8, Math.min(top, viewportHeight - height - 8))}px`;
   }
 
-  function addTooltip(target, text) {
+  function renderTooltip(tooltip, content) {
+    tooltip.replaceChildren();
+    if (typeof content === "string") {
+      const fallback = document.createElement("span");
+      fallback.textContent = content;
+      tooltip.append(fallback);
+      return;
+    }
+    const title = document.createElement("strong");
+    title.className = "chart-tooltip-title";
+    title.textContent = content.title;
+    const details = document.createElement("dl");
+    details.className = "chart-tooltip-details";
+    content.rows.forEach(function (row) {
+      if (row.value === null || row.value === undefined || row.value === "") return;
+      const label = document.createElement("dt");
+      label.textContent = row.label;
+      const value = document.createElement("dd");
+      value.textContent = row.value;
+      details.append(label, value);
+    });
+    tooltip.append(title, details);
+  }
+
+  function addTooltip(target, content) {
+    const accessibleText = typeof content === "string"
+      ? content
+      : `${content.title}. ${content.rows.filter(function (row) {
+          return row.value !== null && row.value !== undefined && row.value !== "";
+        }).map(function (row) { return `${row.label}: ${row.value}`; }).join(". ")}`;
     target.setAttribute("tabindex", "0");
-    target.setAttribute("aria-label", text);
+    target.setAttribute("aria-label", accessibleText);
     target.addEventListener("pointerenter", function (event) {
       const tooltip = tooltipElement();
-      tooltip.textContent = text;
+      renderTooltip(tooltip, content);
       tooltip.hidden = false;
       positionTooltip(tooltip, event.clientX, event.clientY);
     });
@@ -54,7 +90,7 @@
     target.addEventListener("focus", function () {
       const tooltip = tooltipElement();
       const bounds = target.getBoundingClientRect();
-      tooltip.textContent = text;
+      renderTooltip(tooltip, content);
       tooltip.hidden = false;
       positionTooltip(tooltip, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
     });
@@ -78,16 +114,33 @@
     target.addEventListener("blur", showTotal);
   }
 
-  function barTooltip(label, count, percentage, description) {
+  function barTooltip(label, count, percentage, description, comparison) {
     const percentageLabel = percentage === null || percentage === undefined ? "Not available" : `${percentage.toFixed(1)}%`;
-    return `${label}\nCount: ${count}\nPercentage: ${percentageLabel}\n${description}`;
+    return {
+      title: label,
+      rows: [
+        { label: "Category", value: label },
+        { label: "Count", value: count },
+        { label: "Percentage", value: percentageLabel },
+        { label: "Comparison", value: comparison },
+        { label: "Context", value: description }
+      ]
+    };
   }
 
   function trendTooltip(date, value, percentageChange) {
-    const changeLine = percentageChange === null || percentageChange === undefined
-      ? ""
-      : `\nChange: ${percentageChange > 0 ? "+" : ""}${percentageChange.toFixed(1)}%`;
-    return `Date: ${date}\nValue: ${value}${changeLine}`;
+    const change = percentageChange === null || percentageChange === undefined
+      ? null
+      : `${percentageChange > 0 ? "+" : ""}${percentageChange.toFixed(1)}%`;
+    return {
+      title: date,
+      rows: [
+        { label: "Category", value: "Date" },
+        { label: "Count", value },
+        { label: "Percentage", value: change || "Not available" },
+        { label: "Comparison", value: change ? "Previous month" : null }
+      ]
+    };
   }
 
   function createInsightCard(eyebrow, value, metric, detail) {

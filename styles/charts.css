@@ -24,9 +24,9 @@
   --chart-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
   --chart-transition-duration: 180ms;
   --chart-transition-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --chart-tooltip-bg: #f8f6ff;
+  --chart-tooltip-bg: #ffffff;
   --chart-tooltip-color: #211d2e;
-  --chart-tooltip-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+  --chart-tooltip-shadow: 0 8px 24px rgba(9, 8, 15, 0.16);
   --chart-series-1: #8b7cf6;
   --chart-series-1-soft: #aba1df;
   --chart-series-2: #6f9ed8;
@@ -48,9 +48,9 @@
   --chart-border-color: rgba(49, 38, 75, 0.075);
   --chart-shadow: 0 1px 3px rgba(56, 42, 87, 0.055);
   --chart-hover-shadow: 0 3px 10px rgba(56, 42, 87, 0.07);
-  --chart-tooltip-bg: #211d2e;
-  --chart-tooltip-color: #fcfbff;
-  --chart-tooltip-shadow: 0 6px 18px rgba(56, 42, 87, 0.16);
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-color: #211d2e;
+  --chart-tooltip-shadow: 0 8px 24px rgba(56, 42, 87, 0.13);
   --chart-series-1: #6957c8;
   --chart-series-1-soft: #aaa0d5;
   --chart-series-2: #477eb8;
@@ -366,16 +366,38 @@
 .chart-tooltip {
   position: fixed;
   z-index: 10;
-  max-width: 240px;
-  border-radius: var(--chart-inner-radius);
-  padding: 9px 12px;
+  width: min(260px, calc(100vw - 16px));
+  max-width: 260px;
+  border: 1px solid rgba(49, 38, 75, 0.08);
+  border-radius: 12px;
+  padding: 13px 14px;
   background: var(--chart-tooltip-bg);
   color: var(--chart-tooltip-color);
   box-shadow: var(--chart-tooltip-shadow);
-  font: 700 var(--chart-label-size)/1.4 var(--chart-font-family);
-  white-space: pre-line;
+  font-family: var(--chart-font-family);
   pointer-events: none;
 }
+.chart-tooltip-title {
+  display: block;
+  margin-bottom: 9px;
+  color: #6957c8;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.chart-tooltip-details {
+  display: grid;
+  grid-template-columns: minmax(74px, auto) minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 0;
+  color: #777080;
+  font-size: 0.69rem;
+  line-height: 1.4;
+}
+.chart-tooltip-details dt,
+.chart-tooltip-details dd { margin: 0; }
+.chart-tooltip-details dt { color: #99939f; }
+.chart-tooltip-details dd { overflow-wrap: anywhere; color: #5f5968; font-weight: 700; text-align: right; }
 
 .bar-fill:focus-visible,
 .comparison-bars i:focus-visible,

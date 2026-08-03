@@ -1066,14 +1066,14 @@ function createComparisonChart() {
     barA.style.width = `${(item.countA / maximum) * 100}%`;
     window.CatalogLensChartPresentation.addTooltip(
       barA,
-      window.CatalogLensChartPresentation.barTooltip(`${item.label} · Period A`, item.countA, calculatePercentage(item.countA, totalA), text.textContent)
+      window.CatalogLensChartPresentation.barTooltip(item.label, item.countA, calculatePercentage(item.countA, totalA), text.textContent, "Period A")
     );
     const barB = document.createElement("i");
     barB.className = "period-b";
     barB.style.width = `${(item.countB / maximum) * 100}%`;
     window.CatalogLensChartPresentation.addTooltip(
       barB,
-      window.CatalogLensChartPresentation.barTooltip(`${item.label} · Period B`, item.countB, calculatePercentage(item.countB, totalB), text.textContent)
+      window.CatalogLensChartPresentation.barTooltip(item.label, item.countB, calculatePercentage(item.countB, totalB), text.textContent, "Period B")
     );
     bars.append(barA, barB);
     const value = document.createElement("strong");
@@ -1216,7 +1216,10 @@ function createDonutVisual(title, description, categories, total) {
     segment.setAttribute("stroke-dashoffset", String(-currentPercentage));
     segment.style.stroke = executiveChartColors[index % executiveChartColors.length];
     segment.style.animationDelay = `${index * 70}ms`;
-    window.CatalogLensChartPresentation.addTooltip(segment, `${item.label}: ${item.count} titles, ${percentage.toFixed(1)}%`);
+    window.CatalogLensChartPresentation.addTooltip(
+      segment,
+      window.CatalogLensChartPresentation.barTooltip(item.label, item.count, percentage, "Catalog composition")
+    );
     window.CatalogLensChartPresentation.bindDonutCenter(segment, centerValue, centerLabel, total, item);
     svg.append(segment);
 
@@ -1249,7 +1252,10 @@ function createDonutVisual(title, description, categories, total) {
     const value = document.createElement("strong");
     value.textContent = `${item.count} · ${percentage.toFixed(1)}%`;
     row.append(swatch, label, value);
-    window.CatalogLensChartPresentation.addTooltip(row, `${item.label}: ${item.count} titles, ${percentage.toFixed(1)}%`);
+    window.CatalogLensChartPresentation.addTooltip(
+      row,
+      window.CatalogLensChartPresentation.barTooltip(item.label, item.count, percentage, "Catalog composition")
+    );
     legend.append(row);
   });
   layout.append(donut, legend);
